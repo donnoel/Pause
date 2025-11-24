@@ -33,7 +33,7 @@ jobs:
         run: xcodebuild -resolvePackageDependencies -project Pause.xcodeproj
 
       # Build + test on the latest iOS simulator
-         - name: Build and test
+      - name: Build and test
         run: |
           set -e
           xcodebuild \
