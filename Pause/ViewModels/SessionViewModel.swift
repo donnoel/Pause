@@ -9,50 +9,54 @@ final class SessionViewModel: ObservableObject {
     @Published private(set) var selectedPreset: SessionDurationPreset? = .ten
     @Published var isCustomDurationSheetPresented: Bool = false
     @Published private(set) var customDurationMinutes: Int = 10
-    
+
     private let timerEngine: MeditationTimerEngineProtocol
     private let chimePlayer: AudioChimePlaying
-    
+    private let backgroundAudio: BackgroundAudioControlling
+
+    // MARK: - Init
+
     init(timerEngine: MeditationTimerEngineProtocol,
-         chimePlayer: AudioChimePlaying) {
+         chimePlayer: AudioChimePlaying,
+         backgroundAudio: BackgroundAudioControlling = BackgroundAudioManager.shared) {
         self.timerEngine = timerEngine
         self.chimePlayer = chimePlayer
+        self.backgroundAudio = backgroundAudio
+
         timerEngine.onTick = { [weak self] remaining in
             guard let self = self else { return }
-            self.remaining = remaining
+            self.remaining = max(remaining, 0)
         }
-        
+
         timerEngine.onHalfway = { [weak self] in
             self?.chimePlayer.play(chimeType: .halfway)
         }
-        
+
         timerEngine.onCompleted = { [weak self] in
-            guard let self = self else { return }
-            self.state = .completed
-            self.remaining = 0
-            self.chimePlayer.play(chimeType: .end)
+            self?.handleCompletion()
         }
     }
-    
-    // MARK: - Public API
-    
+
+    // MARK: - Public API used by the view
+
     var presets: [SessionDurationPreset] {
         SessionDurationPreset.allCases
     }
-    
+
     func startPreset(_ preset: SessionDurationPreset) {
         selectedPreset = preset
         let duration = preset.rawValue
         start(duration: duration, markAsPreset: true)
     }
-    
+
     func startCustomDuration(minutes: Int) {
+        // Clamp to at least 1 minute to avoid weirdness.
         customDurationMinutes = max(1, minutes)
         selectedPreset = nil
         let seconds = TimeInterval(customDurationMinutes * 60)
         start(duration: seconds, markAsPreset: false)
     }
-    
+
     func togglePause() {
         switch state {
         case .running:
@@ -65,25 +69,41 @@ final class SessionViewModel: ObservableObject {
             break
         }
     }
-    
+
     func cancel() {
         timerEngine.cancel()
         state = .idle
         remaining = 0
         total = 0
+        backgroundAudio.stopKeepingAlive()
     }
-    
+
     func resetCompletion() {
         // Called when user dismisses completion state
         cancel()
     }
-    
+
     // MARK: - Private
-    
+
     private func start(duration: TimeInterval, markAsPreset: Bool) {
-        timerEngine.start(duration: duration)
+        guard duration > 0 else { return }
+
         total = duration
         remaining = duration
         state = .running
+
+        // Keep the app alive when the screen locks.
+        backgroundAudio.startKeepingAlive()
+
+        timerEngine.start(duration: duration)
+    }
+
+    private func handleCompletion() {
+        state = .completed
+        remaining = 0
+
+        // End-of-session bell
+        chimePlayer.play(chimeType: .end)
+
     }
 }
