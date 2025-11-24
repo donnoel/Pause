@@ -33,16 +33,16 @@ jobs:
         run: xcodebuild -resolvePackageDependencies -project Pause.xcodeproj
 
       # Build + test on the latest iOS simulator
-      - name: Build and test
+         - name: Build and test
         run: |
           set -e
           xcodebuild \
             -project Pause.xcodeproj \
             -scheme Pause \
-            -destination "platform=iOS Simulator,OS=latest,name=iPhone 17 Pro Max" \
+            -destination "platform=iOS Simulator,name=iPhone 15 Pro" \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
-            clean test | xcpretty
+            clean test
 
       - name: Upload xcodebuild logs (if the job fails)
         if: failure()
