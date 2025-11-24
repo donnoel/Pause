@@ -21,10 +21,14 @@ struct SessionView: View {
             VStack(spacing: 24) {
                 header
                 
+                // Slightly larger fixed gap between the header and the ring
                 Spacer()
+                    .frame(height: 80)
                 
                 timeDisplay
                 
+                // Single flexible spacer below the ring pushes content down,
+                // which visually lifts the ring higher on taller screens.
                 Spacer()
                 
                 presetRow
@@ -56,16 +60,9 @@ struct SessionView: View {
     
     private var timeDisplay: some View {
         VStack(spacing: 12) {
-            Text(formattedTime(viewModel.remaining > 0 ? viewModel.remaining : viewModel.total))
-                .font(.system(.largeTitle, design: .rounded))
-                .monospacedDigit()
-                .foregroundColor(MeditationColors.textPrimary)
-                .accessibilityLabel(Text("Time \(viewModel.state == .running || viewModel.state == .paused ? "remaining" : "selected"): \(formattedAccessibleTime(viewModel.remaining > 0 ? viewModel.remaining : viewModel.total))"))
-            
             progressRing
                 .frame(width: 200, height: 200)
-                .accessibilityHidden(true)
-            
+
             if viewModel.state == .completed {
                 Text("Session complete")
                     .font(.headline)
@@ -114,6 +111,17 @@ struct SessionView: View {
                 .animation(
                     reduceMotion ? nil : .easeInOut(duration: 0.3),
                     value: progress
+                )
+
+            // Timer text centered inside the ring
+            Text(formattedTime(viewModel.remaining > 0 ? viewModel.remaining : viewModel.total))
+                .font(.system(.largeTitle, design: .rounded))
+                .monospacedDigit()
+                .foregroundColor(MeditationColors.textPrimary)
+                .accessibilityLabel(
+                    Text(
+                        "Time \(viewModel.state == .running || viewModel.state == .paused ? "remaining" : "selected"): \(formattedAccessibleTime(viewModel.remaining > 0 ? viewModel.remaining : viewModel.total))"
+                    )
                 )
         }
     }
