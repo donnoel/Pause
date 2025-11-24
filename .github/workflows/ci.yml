@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-15  # macOS 15 is GA and is what macos-latest maps to now
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,14 +25,14 @@ jobs:
           path: |
             ~/Library/Caches/org.swift.swiftpm
             ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
-          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
+          key: spm-${{ runner.os }}
           restore-keys: |
             spm-${{ runner.os }}-
 
       - name: Resolve packages
         run: xcodebuild -resolvePackageDependencies -project Pause.xcodeproj
 
-      # Build + test on the latest iOS simulator
+      # Build + test on a known-available iOS simulator
       - name: Build and test
         run: |
           set -e
@@ -49,4 +49,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: xcodebuild-logs
-          path: ~/Library/Logs/scan # or fall back to derived logs if you prefer
+          path: ~/Library/Logs/scan
