@@ -38,7 +38,7 @@ jobs:
           set -e
           xcodebuild \
             -project Pause.xcodeproj \
-            -scheme Glow \
+            -scheme Pause \
             -destination "platform=iOS Simulator,OS=latest,name=iPhone 17 Pro Max" \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
