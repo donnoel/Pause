@@ -4,6 +4,8 @@ struct SessionView: View {
     @StateObject private var viewModel: SessionViewModel
     
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     
     @State private var customMinutesSelection: Int = 10
     
@@ -116,29 +118,43 @@ struct SessionView: View {
         }
     }
     
+    @ViewBuilder
     private var presetRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(viewModel.presets) { preset in
-                    DurationPill(
-                        title: preset.label,
-                        isSelected: viewModel.selectedPreset == preset
-                    ) {
-                        viewModel.startPreset(preset)
-                    }
-                    .accessibilityHint(Text("Starts a \(preset.label) meditation timer."))
-                }
-                
-                DurationPill(
-                    title: "Custom…",
-                    isSelected: viewModel.selectedPreset == nil && viewModel.state != .idle
-                ) {
-                    customMinutesSelection = viewModel.customDurationMinutes
-                    viewModel.isCustomDurationSheetPresented = true
-                }
-                .accessibilityHint(Text("Choose a custom meditation duration."))
+        if horizontalSizeClass == .regular {
+            // iPad / regular width: centered, no scroll (they all fit nicely)
+            presetRowContent
+                .frame(maxWidth: .infinity)          // takes full width
+                .padding(.horizontal, 24)            // matches the Start button area visually
+        } else {
+            // iPhone / compact width: keep horizontal scrolling + left-ish behavior
+            ScrollView(.horizontal, showsIndicators: false) {
+                presetRowContent
+                    .padding(.horizontal, 4)
             }
-            .padding(.horizontal, 4)
+        }
+    }
+
+    @ViewBuilder
+    private var presetRowContent: some View {
+        HStack(spacing: 8) {
+            ForEach(viewModel.presets) { preset in
+                DurationPill(
+                    title: preset.label,
+                    isSelected: viewModel.selectedPreset == preset
+                ) {
+                    viewModel.startPreset(preset)
+                }
+                .accessibilityHint(Text("Starts a \(preset.label) meditation timer."))
+            }
+
+            DurationPill(
+                title: "Custom…",
+                isSelected: viewModel.selectedPreset == nil && viewModel.state != .idle
+            ) {
+                customMinutesSelection = viewModel.customDurationMinutes
+                viewModel.isCustomDurationSheetPresented = true
+            }
+            .accessibilityHint(Text("Choose a custom meditation duration."))
         }
     }
     
