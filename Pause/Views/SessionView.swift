@@ -59,9 +59,11 @@ struct SessionView: View {
     }
     
     private var timeDisplay: some View {
-        VStack(spacing: 12) {
+        let ringSize: CGFloat = (horizontalSizeClass == .regular) ? 260 : 200
+
+        return VStack(spacing: 12) {
             progressRing
-                .frame(width: 200, height: 200)
+                .frame(width: ringSize, height: ringSize)
 
             if viewModel.state == .completed {
                 Text("Session complete")
@@ -115,7 +117,7 @@ struct SessionView: View {
 
             // Timer text centered inside the ring
             Text(formattedTime(viewModel.remaining > 0 ? viewModel.remaining : viewModel.total))
-                .font(.system(.largeTitle, design: .rounded))
+                .font(timerFont)
                 .monospacedDigit()
                 .foregroundColor(MeditationColors.textPrimary)
                 .accessibilityLabel(
@@ -226,6 +228,16 @@ struct SessionView: View {
             }
         case .running, .paused:
             viewModel.togglePause()
+        }
+    }
+    
+    private var timerFont: Font {
+        if horizontalSizeClass == .regular {
+            // iPad
+            return .system(size: 54, weight: .medium, design: .rounded)
+        } else {
+            // iPhone (unchanged)
+            return .system(.largeTitle, design: .rounded)
         }
     }
     
