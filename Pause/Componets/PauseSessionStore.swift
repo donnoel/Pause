@@ -5,6 +5,7 @@ import WidgetKit
 
 struct PauseSessionInfo: Codable {
     var isActive: Bool
+    var startDate: Date?
     var endDate: Date?
 }
 

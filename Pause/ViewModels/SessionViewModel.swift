@@ -35,6 +35,8 @@ final class SessionViewModel: ObservableObject {
         timerEngine.onCompleted = { [weak self] in
             self?.handleCompletion()
         }
+
+        restoreActiveSessionIfNeeded()
     }
 
     // MARK: - Public API used by the view
@@ -84,6 +86,38 @@ final class SessionViewModel: ObservableObject {
         cancel()
     }
 
+    private func restoreActiveSessionIfNeeded() {
+        let info = PauseSessionStore.load()
+        guard info.isActive, let end = info.endDate else { return }
+
+        let now = Date()
+        if now >= end {
+            // Session already finished – move to completed and clear store.
+            state = .completed
+            remaining = 0
+            if let start = info.startDate {
+                total = end.timeIntervalSince(start)
+            }
+            PauseSessionStore.clear()
+            return
+        }
+
+        let remainingInterval = end.timeIntervalSince(now)
+        let totalInterval: TimeInterval
+        if let start = info.startDate {
+            totalInterval = end.timeIntervalSince(start)
+        } else {
+            totalInterval = remainingInterval
+        }
+
+        total = totalInterval
+        remaining = remainingInterval
+        state = .running
+
+        backgroundAudio.startKeepingAlive()
+        timerEngine.start(duration: remainingInterval)
+    }
+
     // MARK: - Private
 
     private func start(duration: TimeInterval, markAsPreset: Bool) {
@@ -93,8 +127,15 @@ final class SessionViewModel: ObservableObject {
         remaining = duration
         state = .running
 
-        let endTime = Date().addingTimeInterval(duration)
-        PauseSessionStore.save(PauseSessionInfo(isActive: true, endDate: endTime))
+        let startTime = Date()
+        let endTime = startTime.addingTimeInterval(duration)
+        PauseSessionStore.save(
+            PauseSessionInfo(
+                isActive: true,
+                startDate: startTime,
+                endDate: endTime
+            )
+        )
 
         // Keep the app alive when the screen locks.
         backgroundAudio.startKeepingAlive()
@@ -108,7 +149,6 @@ final class SessionViewModel: ObservableObject {
 
         // End-of-session bell
         chimePlayer.play(chimeType: .end)
-        backgroundAudio.stopKeepingAlive()
         PauseSessionStore.clear()
     }
 }
