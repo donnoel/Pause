@@ -5,6 +5,7 @@ struct SessionView: View {
     
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.colorScheme) private var colorScheme
 
     
     @State private var customMinutesSelection: Int = 10
@@ -15,7 +16,7 @@ struct SessionView: View {
     
     var body: some View {
         ZStack {
-            MeditationColors.backgroundPrimary
+            MeditationColors.backgroundPrimary(for: colorScheme)
                 .ignoresSafeArea()
             
             VStack(spacing: 24) {

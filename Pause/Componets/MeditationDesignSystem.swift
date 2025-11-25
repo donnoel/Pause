@@ -18,6 +18,24 @@ enum MeditationColors {
         endPoint: .bottom
     )
 
+    /// Dark-mode aware variant, so views can opt into a richer dark appearance.
+    static func backgroundPrimary(for colorScheme: ColorScheme) -> LinearGradient {
+        switch colorScheme {
+        case .dark:
+            return LinearGradient(
+                colors: [
+                    Color(red: 0x06/255.0, green: 0x0A/255.0, blue: 0x12/255.0),
+                    Color(red: 0x10/255.0, green: 0x14/255.0, blue: 0x24/255.0),
+                    Color(red: 0x14/255.0, green: 0x18/255.0, blue: 0x30/255.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        default:
+            return backgroundPrimary
+        }
+    }
+
     /// Soft surface color used for rings, pill backgrounds, etc.
     /// This is intentionally subtle so the timer ring and chips feel calm.
     static let backgroundSecondary: Color = Color.white.opacity(0.22)
@@ -31,8 +49,8 @@ enum MeditationColors {
 
     /// Text colors follow system dynamic colors so they remain legible
     /// in both light and dark appearances.
-    static let textPrimary: Color = Color.black.opacity(0.75)
-    static let textSecondary: Color = Color.black.opacity(0.45)
+    static var textPrimary: Color { Color.primary.opacity(0.9) }
+    static var textSecondary: Color { Color.secondary.opacity(0.85) }
 }
 
 /// Primary large button used for the main Call To Action (Start / Pause / Resume).
