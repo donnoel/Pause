@@ -53,11 +53,24 @@ struct PauseLockScreenProvider: TimelineProvider {
     func getSnapshot(in context: Context,
                      completion: @escaping (PauseLockScreenEntry) -> Void) {
         let info = PauseSessionStore.load()
+        let now = Date()
+
+        let isActive: Bool
+        let endDate: Date?
+
+        if let end = info.endDate, info.isActive, end > now {
+            isActive = true
+            endDate = end
+        } else {
+            isActive = false
+            endDate = nil
+        }
+
         completion(
             PauseLockScreenEntry(
-                date: Date(),
-                isActive: info.isActive,
-                endDate: info.endDate
+                date: now,
+                isActive: isActive,
+                endDate: endDate
             )
         )
     }
@@ -67,18 +80,27 @@ struct PauseLockScreenProvider: TimelineProvider {
         let info = PauseSessionStore.load()
         let now = Date()
 
-        let entry = PauseLockScreenEntry(
-            date: now,
-            isActive: info.isActive,
-            endDate: info.endDate
-        )
-
+        let isActive: Bool
+        let endDate: Date?
         let policy: TimelineReloadPolicy
-        if let end = info.endDate, info.isActive {
+
+        if let end = info.endDate, info.isActive, end > now {
+            // Active session that has not yet ended
+            isActive = true
+            endDate = end
             policy = .after(end)
         } else {
+            // Session finished or not running – always show Stillness
+            isActive = false
+            endDate = nil
             policy = .never
         }
+
+        let entry = PauseLockScreenEntry(
+            date: now,
+            isActive: isActive,
+            endDate: endDate
+        )
 
         completion(Timeline(entries: [entry], policy: policy))
     }
@@ -93,8 +115,7 @@ struct PauseLockScreenWidgetView: View {
         ZStack(alignment: .center) {
             // Circular ring to visually match other accessory circular widgets
             Circle()
-                .strokeBorder(Color.primary.opacity(0.45), lineWidth: 4)
-
+                .stroke(.secondary.opacity(0.35), lineWidth: 3)
             if entry.isActive, let end = entry.endDate {
                 // Compact timer for circular widget
                 Text(timerInterval: entry.date...end, countsDown: true)
