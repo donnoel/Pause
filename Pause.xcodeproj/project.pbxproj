@@ -6,7 +6,20 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5A0EE55D2ED5296C00E6E58E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A0EE55C2ED5296C00E6E58E /* WidgetKit.framework */; };
+		5A0EE55F2ED5296C00E6E58E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A0EE55E2ED5296C00E6E58E /* SwiftUI.framework */; };
+		5A0EE56E2ED5296D00E6E58E /* PauseWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5A0EE55A2ED5296C00E6E58E /* PauseWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
+		5A0EE56C2ED5296D00E6E58E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5AEA33BB2ED2749400D5C7ED /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5A0EE5592ED5296C00E6E58E;
+			remoteInfo = PauseWidgetExtension;
+		};
 		5AEA33D52ED2749400D5C7ED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5AEA33BB2ED2749400D5C7ED /* Project object */;
@@ -23,13 +36,38 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		5A0EE5732ED5296D00E6E58E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5A0EE56E2ED5296D00E6E58E /* PauseWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		5A0EE55A2ED5296C00E6E58E /* PauseWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PauseWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A0EE55C2ED5296C00E6E58E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		5A0EE55E2ED5296C00E6E58E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		5A0EE5742ED52AE500E6E58E /* PauseWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PauseWidgetExtension.entitlements; sourceTree = "<group>"; };
 		5AEA33C32ED2749400D5C7ED /* Pause.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pause.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5AEA33D42ED2749400D5C7ED /* PauseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PauseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5AEA33DE2ED2749400D5C7ED /* PauseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PauseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5A0EE5722ED5296D00E6E58E /* Exceptions for "PauseWidget" folder in "PauseWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5A0EE5592ED5296C00E6E58E /* PauseWidgetExtension */;
+		};
 		5AEA33E62ED2749400D5C7ED /* Exceptions for "Pause" folder in "Pause" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -40,6 +78,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5A0EE5602ED5296C00E6E58E /* PauseWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5A0EE5722ED5296D00E6E58E /* Exceptions for "PauseWidget" folder in "PauseWidgetExtension" target */,
+			);
+			path = PauseWidget;
+			sourceTree = "<group>";
+		};
 		5AEA33C52ED2749400D5C7ED /* Pause */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -61,6 +107,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5A0EE5572ED5296C00E6E58E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5A0EE55F2ED5296C00E6E58E /* SwiftUI.framework in Frameworks */,
+				5A0EE55D2ED5296C00E6E58E /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5AEA33C02ED2749400D5C7ED /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -85,12 +140,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5A0EE55B2ED5296C00E6E58E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5A0EE55C2ED5296C00E6E58E /* WidgetKit.framework */,
+				5A0EE55E2ED5296C00E6E58E /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		5AEA33BA2ED2749400D5C7ED = {
 			isa = PBXGroup;
 			children = (
+				5A0EE5742ED52AE500E6E58E /* PauseWidgetExtension.entitlements */,
 				5AEA33C52ED2749400D5C7ED /* Pause */,
 				5AEA33D72ED2749400D5C7ED /* PauseTests */,
 				5AEA33E12ED2749400D5C7ED /* PauseUITests */,
+				5A0EE5602ED5296C00E6E58E /* PauseWidget */,
+				5A0EE55B2ED5296C00E6E58E /* Frameworks */,
 				5AEA33C42ED2749400D5C7ED /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +168,7 @@
 				5AEA33C32ED2749400D5C7ED /* Pause.app */,
 				5AEA33D42ED2749400D5C7ED /* PauseTests.xctest */,
 				5AEA33DE2ED2749400D5C7ED /* PauseUITests.xctest */,
+				5A0EE55A2ED5296C00E6E58E /* PauseWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,6 +176,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5A0EE5592ED5296C00E6E58E /* PauseWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5A0EE56F2ED5296D00E6E58E /* Build configuration list for PBXNativeTarget "PauseWidgetExtension" */;
+			buildPhases = (
+				5A0EE5562ED5296C00E6E58E /* Sources */,
+				5A0EE5572ED5296C00E6E58E /* Frameworks */,
+				5A0EE5582ED5296C00E6E58E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5A0EE5602ED5296C00E6E58E /* PauseWidget */,
+			);
+			name = PauseWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = PauseWidgetExtension;
+			productReference = 5A0EE55A2ED5296C00E6E58E /* PauseWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		5AEA33C22ED2749400D5C7ED /* Pause */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5AEA33E72ED2749400D5C7ED /* Build configuration list for PBXNativeTarget "Pause" */;
@@ -115,10 +205,12 @@
 				5AEA33BF2ED2749400D5C7ED /* Sources */,
 				5AEA33C02ED2749400D5C7ED /* Frameworks */,
 				5AEA33C12ED2749400D5C7ED /* Resources */,
+				5A0EE5732ED5296D00E6E58E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5A0EE56D2ED5296D00E6E58E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5AEA33C52ED2749400D5C7ED /* Pause */,
@@ -186,6 +278,9 @@
 				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
+					5A0EE5592ED5296C00E6E58E = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
 					5AEA33C22ED2749400D5C7ED = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
@@ -216,11 +311,19 @@
 				5AEA33C22ED2749400D5C7ED /* Pause */,
 				5AEA33D32ED2749400D5C7ED /* PauseTests */,
 				5AEA33DD2ED2749400D5C7ED /* PauseUITests */,
+				5A0EE5592ED5296C00E6E58E /* PauseWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5A0EE5582ED5296C00E6E58E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5AEA33C12ED2749400D5C7ED /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -245,6 +348,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5A0EE5562ED5296C00E6E58E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5AEA33BF2ED2749400D5C7ED /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -269,6 +379,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		5A0EE56D2ED5296D00E6E58E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5A0EE5592ED5296C00E6E58E /* PauseWidgetExtension */;
+			targetProxy = 5A0EE56C2ED5296D00E6E58E /* PBXContainerItemProxy */;
+		};
 		5AEA33D62ED2749400D5C7ED /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 5AEA33C22ED2749400D5C7ED /* Pause */;
@@ -282,6 +397,76 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		5A0EE5702ED5296D00E6E58E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PauseWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = H7LG8SK72M;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PauseWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PauseWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = dn.Pause.PauseWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5A0EE5712ED5296D00E6E58E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PauseWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = H7LG8SK72M;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PauseWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PauseWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = dn.Pause.PauseWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		5AEA33E82ED2749400D5C7ED /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -294,6 +479,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Pause/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Pause;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -332,6 +519,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Pause/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Pause;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -492,6 +681,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dn.PauseTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -514,6 +707,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dn.PauseTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -534,6 +731,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dn.PauseUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -554,6 +755,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dn.PauseUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -566,6 +771,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5A0EE56F2ED5296D00E6E58E /* Build configuration list for PBXNativeTarget "PauseWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A0EE5702ED5296D00E6E58E /* Debug */,
+				5A0EE5712ED5296D00E6E58E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		5AEA33BE2ED2749400D5C7ED /* Build configuration list for PBXProject "Pause" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

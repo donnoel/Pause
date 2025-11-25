@@ -21,9 +21,9 @@ struct SessionView: View {
             VStack(spacing: 24) {
                 header
                 
-                // Slightly larger fixed gap between the header and the ring
+                // Vertical gap between the header and the ring; larger on iPad so the ring sits lower
                 Spacer()
-                    .frame(height: 80)
+                    .frame(height: horizontalSizeClass == .regular ? 250 : 48)
                 
                 timeDisplay
                 

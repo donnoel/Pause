@@ -76,6 +76,7 @@ final class SessionViewModel: ObservableObject {
         remaining = 0
         total = 0
         backgroundAudio.stopKeepingAlive()
+        PauseSessionStore.clear()
     }
 
     func resetCompletion() {
@@ -92,6 +93,9 @@ final class SessionViewModel: ObservableObject {
         remaining = duration
         state = .running
 
+        let endTime = Date().addingTimeInterval(duration)
+        PauseSessionStore.save(PauseSessionInfo(isActive: true, endDate: endTime))
+
         // Keep the app alive when the screen locks.
         backgroundAudio.startKeepingAlive()
 
@@ -104,6 +108,7 @@ final class SessionViewModel: ObservableObject {
 
         // End-of-session bell
         chimePlayer.play(chimeType: .end)
-
+        backgroundAudio.stopKeepingAlive()
+        PauseSessionStore.clear()
     }
 }
