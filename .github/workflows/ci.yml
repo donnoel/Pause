@@ -39,7 +39,7 @@ jobs:
           xcodebuild \
             -project Pause.xcodeproj \
             -scheme Pause \
-            -destination "platform=iOS Simulator,name=iPhone 17 Pro Max" \
+            -destination "platform=iOS Simulator,OS=latest" \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
             clean test
