@@ -87,7 +87,10 @@ struct DurationPill: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            Haptics.selection()
+            action()
+        } label: {
             Text(title)
                 .font(.body.weight(isSelected ? .semibold : .regular))
                 .padding(.horizontal, 16)
