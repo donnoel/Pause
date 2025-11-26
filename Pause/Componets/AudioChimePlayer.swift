@@ -13,7 +13,7 @@ protocol AudioChimePlaying {
     func play(chimeType: ChimeType)
 }
 
-/// Concrete implementation that plays `Bell.mp3` from the main bundle.
+/// Concrete implementation that plays `chime.mp3` from the main bundle.
 final class SystemAudioChimePlayer: NSObject, AudioChimePlaying {
 
     private var audioPlayer: AVAudioPlayer?
