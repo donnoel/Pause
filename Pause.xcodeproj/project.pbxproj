@@ -68,7 +68,7 @@
 			);
 			target = 5A0EE5592ED5296C00E6E58E /* PauseWidgetExtension */;
 		};
-		5AEA33E62ED2749400D5C7ED /* Exceptions for "Pause" folder in "Pause" target */ = {
+		5A1D2C542ED6962400411F16 /* Exceptions for "Pause" folder in "Pause" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -89,7 +89,7 @@
 		5AEA33C52ED2749400D5C7ED /* Pause */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5AEA33E62ED2749400D5C7ED /* Exceptions for "Pause" folder in "Pause" target */,
+				5A1D2C542ED6962400411F16 /* Exceptions for "Pause" folder in "Pause" target */,
 			);
 			path = Pause;
 			sourceTree = "<group>";
@@ -485,7 +485,6 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -525,7 +524,6 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
