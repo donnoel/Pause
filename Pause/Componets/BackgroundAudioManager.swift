@@ -25,24 +25,21 @@ final class BackgroundAudioManager: BackgroundAudioControlling {
     /// Call when a meditation session starts.
     func startKeepingAlive() {
         configureIfNeeded()
+        ensureEngineRunning()
     }
 
     /// Call when a meditation session ends or is cancelled.
     func stopKeepingAlive() {
         guard isConfigured else { return }
 
-        engine.pause()
-
-        do {
-            try AVAudioSession.sharedInstance().setActive(
-                false,
-                options: [.notifyOthersOnDeactivation]
-            )
-        } catch {
-            #if DEBUG
-            print("⚠️ BackgroundAudioManager: Failed to deactivate audio session: \(error)")
-            #endif
+        if engine.isRunning {
+            engine.stop()
         }
+
+        // Intentionally do not deactivate the shared AVAudioSession here.
+        // Deactivating the session can cut off any ongoing playback (like
+        // the final chime). The system can deactivate the session when
+        // appropriate once no audio is playing.
     }
 
     // MARK: - Private
@@ -84,7 +81,6 @@ final class BackgroundAudioManager: BackgroundAudioControlling {
         sourceNode = source
         isConfigured = true
 
-        ensureEngineRunning()
     }
 
     private func ensureEngineRunning() {
