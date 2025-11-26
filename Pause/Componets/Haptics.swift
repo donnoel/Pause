@@ -1,17 +1,23 @@
 import UIKit
 
 enum Haptics {
+
+    // Reuse generators to avoid repeated allocations and allow better system tuning.
+    private static let selectionGenerator = UISelectionFeedbackGenerator()
+    private static let notificationGenerator = UINotificationFeedbackGenerator()
+
     static func selection() {
-        UISelectionFeedbackGenerator().selectionChanged()
+        selectionGenerator.prepare()
+        selectionGenerator.selectionChanged()
     }
 
     static func primary() {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+        notificationGenerator.prepare()
+        notificationGenerator.notificationOccurred(.success)
     }
 
     static func destructive() {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
+        notificationGenerator.prepare()
+        notificationGenerator.notificationOccurred(.warning)
     }
 }
