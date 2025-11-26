@@ -22,6 +22,10 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying {
     private let fileName = "Bell"
     private let fileExtension = "mp3"
 
+    /// Master chime volume relative to system volume.
+    /// 1.0 = full, 0.0 = silent. 0.25 is a "polite" chime.
+    private let chimeVolume: Float = 0.10
+
     func play(chimeType: ChimeType) {
         // For now, both halfway + end use the same sound.
         // You could vary behavior later based on `chimeType` if you want.
@@ -37,9 +41,11 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying {
         }
 
         do {
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.prepareToPlay()
-            audioPlayer?.play()
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.volume = chimeVolume      // ⬅️ make the chime quieter
+            player.prepareToPlay()
+            player.play()
+            audioPlayer = player             // keep a strong reference
         } catch {
             #if DEBUG
             print("⚠️ SystemAudioChimePlayer: Failed to play \(fileName).\(fileExtension): \(error)")
