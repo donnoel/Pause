@@ -1,10 +1,3 @@
-//
-//  PauseWidgetControl.swift
-//  PauseWidget
-//
-//  Created by Don Noel on 11/24/25.
-//
-
 import AppIntents
 import SwiftUI
 import WidgetKit
