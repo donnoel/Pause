@@ -19,7 +19,7 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying {
     private var audioPlayer: AVAudioPlayer?
 
     // If you ever change the file name/extension, just update these.
-    private let fileName = "Bell"
+    private let fileName = "chime"
     private let fileExtension = "mp3"
 
     /// Master chime volume relative to system volume.
