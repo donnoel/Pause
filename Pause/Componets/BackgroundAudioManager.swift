@@ -25,7 +25,6 @@ final class BackgroundAudioManager: BackgroundAudioControlling {
     /// Call when a meditation session starts.
     func startKeepingAlive() {
         configureIfNeeded()
-        ensureEngineRunning()
     }
 
     /// Call when a meditation session ends or is cancelled.
