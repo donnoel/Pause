@@ -48,7 +48,7 @@ final class SessionViewModel: ObservableObject {
     func startPreset(_ preset: SessionDurationPreset) {
         selectedPreset = preset
         let duration = preset.rawValue
-        start(duration: duration, markAsPreset: true)
+        start(duration: duration)
     }
 
     func startCustomDuration(minutes: Int) {
@@ -56,7 +56,7 @@ final class SessionViewModel: ObservableObject {
         customDurationMinutes = max(1, minutes)
         selectedPreset = nil
         let seconds = TimeInterval(customDurationMinutes * 60)
-        start(duration: seconds, markAsPreset: false)
+        start(duration: seconds)
     }
 
     func togglePause() {
@@ -120,7 +120,7 @@ final class SessionViewModel: ObservableObject {
 
     // MARK: - Private
 
-    private func start(duration: TimeInterval, markAsPreset: Bool) {
+    private func start(duration: TimeInterval) {
         guard duration > 0 else { return }
 
         total = duration
@@ -149,6 +149,16 @@ final class SessionViewModel: ObservableObject {
 
         // End-of-session bell
         chimePlayer.play(chimeType: .end)
+
         PauseSessionStore.clear()
+
+        // Allow the chime to ring out before stopping background keep-alive.
+        // We only stop if we're still in the completed state to avoid
+        // interfering with a quickly restarted session.
+        let delay: TimeInterval = 3
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self, self.state == .completed else { return }
+            self.backgroundAudio.stopKeepingAlive()
+        }
     }
 }
