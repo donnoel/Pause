@@ -21,6 +21,7 @@ private enum PauseSessionStore {
     // Must match the App Group ID configured in both app and widget targets
     private static let suiteName = "group.dn.pause"
     private static let key = "currentSession"
+    private static let decoder = JSONDecoder()
 
     private static var defaults: UserDefaults? {
         UserDefaults(suiteName: suiteName)
@@ -30,9 +31,9 @@ private enum PauseSessionStore {
         guard
             let defaults,
             let data = defaults.data(forKey: key),
-            let info = try? JSONDecoder().decode(PauseSessionInfo.self, from: data)
+            let info = try? decoder.decode(PauseSessionInfo.self, from: data)
         else {
-            return PauseSessionInfo(isActive: false, endDate: nil)
+            return PauseSessionInfo(isActive: false, startDate: nil, endDate: nil)
         }
 
         return info
