@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct SessionView: View {
     @StateObject private var viewModel: SessionViewModel
@@ -180,8 +179,7 @@ struct SessionView: View {
             
             if viewModel.state == .running || viewModel.state == .paused {
                 Button(role: .destructive) {
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.warning)
+                    Haptics.destructive()
                     viewModel.cancel()
                 } label: {
                     Text("Cancel session")
@@ -225,16 +223,14 @@ struct SessionView: View {
     private func primaryButtonTapped() {
         switch viewModel.state {
         case .idle, .completed:
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
+            Haptics.primary()
             if let preset = viewModel.selectedPreset {
                 viewModel.startPreset(preset)
             } else {
                 viewModel.isCustomDurationSheetPresented = true
             }
         case .running, .paused:
-            let generator = UISelectionFeedbackGenerator()
-            generator.selectionChanged()
+            Haptics.selection()
             viewModel.togglePause()
         }
     }
