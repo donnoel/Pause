@@ -45,7 +45,8 @@ enum MeditationColors {
     static let accentPrimary: Color = Color("PauseAccent")
 
     /// Soft accent used for fills behind selected pills and buttons.
-    static let accentSoft: Color = Color("PauseAccent").opacity(0.16)
+    /// Derived from `accentPrimary` so changes to the accent asset stay in sync.
+    static let accentSoft: Color = accentPrimary.opacity(0.16)
 
     /// Text colors follow system dynamic colors so they remain legible
     /// in both light and dark appearances.
