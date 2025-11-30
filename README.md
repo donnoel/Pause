@@ -183,14 +183,3 @@ Pause is intentionally small — a tiny pocket of calm in a noisy world.
 If this project inspires you, improves your day, or teaches you something about SwiftUI architecture, that makes it all worth it.
 
 ⸻
-
-If you want, I can also:
-	•	generate stunning GitHub screenshots
-	•	create a project logo
-	•	add badges (build status, Swift version, etc.)
-	•	create a CHANGELOG.md
-	•	write a marketing-style landing page
-	•	document your API more deeply
-
-Just tell me the vibe you want.
-Pause is a breath in app form — quiet, grounding, and always there when you need a moment.
