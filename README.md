@@ -168,14 +168,6 @@ Run tests via:
 
 Pull requests are welcome. If you’d like to improve animations, add additional breathing modes, or enhance widget functionality, open an issue and let’s talk.
 
-⸻
-
-📄 License
-
-Pause is available under the MIT license.
-See LICENSE for details.
-
-⸻
 
 🌟 Final Note
 
