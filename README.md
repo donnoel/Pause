@@ -1,6 +1,6 @@
 # ✨ **Pause**
 
-### Breathe deeper. Slow down. Return to yourself.#
+### *Breathe deeper. Slow down. Return to yourself.*
 
 <p align="center">
   <img src="https://img.shields.io/badge/SwiftUI-6.0-orange?logo=swift">
