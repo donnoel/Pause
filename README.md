@@ -8,12 +8,6 @@
   <img src="https://img.shields.io/badge/License-MIT-green">
 </p>
 
-
-
-Absolutely, Don — I read through the entire project and have a crystal-clear picture of what Pause is doing under the hood. Here’s a premium, polished, GitHub-ready README.md that presents your app like a classy, modern, intentional meditation tool — the kind of thing that feels like a well-crafted Apple-native experience.
-
-This is written to feel clean, confident, and professional — perfect for an open-source repo or portfolio piece.
-
 ⸻
 
 🌿 Pause – A Minimal, Intentional Breathing & Mindfulness Timer
