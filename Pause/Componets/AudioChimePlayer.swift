@@ -24,7 +24,7 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying {
 
     /// Master chime volume relative to system volume.
     /// 1.0 = full, 0.0 = silent. 0.25 is a "polite" chime.
-    private let chimeVolume: Float = 0.5
+    private let chimeVolume: Float = 0.15
 
     func play(chimeType: ChimeType) {
         // For now, both halfway + end use the same sound.

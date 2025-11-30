@@ -192,6 +192,7 @@ struct SessionView: View {
                 } label: {
                     Text("New session")
                         .font(.body)
+                        .foregroundColor(MeditationColors.textSecondary)
                 }
                 .accessibilityLabel(Text("Start a new session"))
             }
