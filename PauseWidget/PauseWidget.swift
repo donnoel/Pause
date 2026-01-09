@@ -127,7 +127,7 @@ struct PauseLockScreenWidgetView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
-                Text("Stillness")
+                Text("Pause")
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
