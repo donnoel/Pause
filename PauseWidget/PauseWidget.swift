@@ -47,7 +47,7 @@ struct PauseLockScreenProvider: TimelineProvider {
         PauseLockScreenEntry(
             date: Date(),
             isActive: true,
-            endDate: Date().addingTimeInterval(10 * 60)
+            endDate: Date().addingTimeInterval(5 * 60)
         )
     }
 
@@ -154,3 +154,4 @@ struct PauseLockScreenWidget: Widget {
         .supportedFamilies([.accessoryCircular])
     }
 }
+

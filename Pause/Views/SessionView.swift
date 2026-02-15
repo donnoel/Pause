@@ -8,7 +8,7 @@ struct SessionView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     
-    @State private var customMinutesSelection: Int = 10
+    @State private var customMinutesSelection: Int = 5
     
     init(viewModel: SessionViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -318,3 +318,4 @@ extension SessionViewModel {
         self.init(timerEngine: engine, chimePlayer: chimePlayer)
     }
 }
+

@@ -6,9 +6,9 @@ final class SessionViewModel: ObservableObject {
     @Published private(set) var state: SessionState = .idle
     @Published private(set) var remaining: TimeInterval = 0
     @Published private(set) var total: TimeInterval = 0
-    @Published private(set) var selectedPreset: SessionDurationPreset? = .ten
+    @Published private(set) var selectedPreset: SessionDurationPreset? = .five
     @Published var isCustomDurationSheetPresented: Bool = false
-    @Published private(set) var customDurationMinutes: Int = 10
+    @Published private(set) var customDurationMinutes: Int = 5
 
     private let timerEngine: MeditationTimerEngineProtocol
     private let chimePlayer: AudioChimePlaying
@@ -162,3 +162,4 @@ final class SessionViewModel: ObservableObject {
         }
     }
 }
+
