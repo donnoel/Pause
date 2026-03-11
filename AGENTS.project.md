@@ -20,6 +20,7 @@ Project-specific guidance for contributors working in this repository.
 - Never regress lock-screen/background timing behavior.
 - Maintain widget compatibility when changing anything in `PauseSessionStore`.
 - Additions to persistence must be backward compatible with existing stored data.
+- Preserve Insights history sync behavior across devices (iCloud KVS + local app-group storage fallback).
 - Keep UI logic in SwiftUI views and business/state logic in view models/services/stores.
 
 ## Build and test commands

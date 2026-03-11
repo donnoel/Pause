@@ -35,6 +35,43 @@ struct CompletedMeditationSessionRecord: Codable, Equatable {
     let plannedDuration: TimeInterval
 }
 
+enum CompletedSessionRecordMerger {
+    static func normalized(
+        _ records: [CompletedMeditationSessionRecord],
+        maxCount: Int
+    ) -> [CompletedMeditationSessionRecord] {
+        guard maxCount > 0 else { return [] }
+
+        let sorted = records.sorted { $0.endDate < $1.endDate }
+        var unique: [CompletedMeditationSessionRecord] = []
+        unique.reserveCapacity(sorted.count)
+
+        for record in sorted {
+            let duplicateExists = unique.contains { existing in
+                isApproximatelyDuplicate(existing, record)
+            }
+            if !duplicateExists {
+                unique.append(record)
+            }
+        }
+
+        if unique.count > maxCount {
+            return Array(unique.suffix(maxCount))
+        }
+
+        return unique
+    }
+
+    private static func isApproximatelyDuplicate(
+        _ lhs: CompletedMeditationSessionRecord,
+        _ rhs: CompletedMeditationSessionRecord
+    ) -> Bool {
+        abs(lhs.startDate.timeIntervalSince(rhs.startDate)) < 1 &&
+        abs(lhs.endDate.timeIntervalSince(rhs.endDate)) < 1 &&
+        abs(lhs.plannedDuration - rhs.plannedDuration) < 0.5
+    }
+}
+
 /// Aggregated stats used by the UI.
 struct SessionStatsSummary: Equatable {
     let completedDateComponents: Set<DateComponents>

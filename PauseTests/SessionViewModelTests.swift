@@ -65,18 +65,25 @@ final class SessionStatsCalculatorTests: XCTestCase {
         XCTAssertEqual(summary.usualMeditationMinutesFromMidnight, 8 * 60)
         XCTAssertNotNil(summary.averageSessionLength)
         XCTAssertEqual(summary.averageSessionLength ?? 0, 800, accuracy: 0.001)
-        XCTAssertEqual(summary.lastCompletedSession, third)
+        XCTAssertEqual(summary.lastCompletedSession?.startDate, third.startDate)
+        XCTAssertEqual(summary.lastCompletedSession?.endDate, third.endDate)
+        XCTAssertEqual(summary.lastCompletedSession?.plannedDuration, third.plannedDuration)
         XCTAssertEqual(summary.completedDateComponents.count, 3)
-        XCTAssertTrue(
-            summary.completedDateComponents.contains(
-                DateComponents(year: 2026, month: 3, day: 2)
-            )
-        )
+        let includesMarchSecond = summary.completedDateComponents.contains { components in
+            components.year == 2026 &&
+            components.month == 3 &&
+            components.day == 2
+        }
+        XCTAssertTrue(includesMarchSecond)
     }
 
     func testSummaryIsEmptyWhenNoRecordsExist() {
         let summary = SessionStatsCalculator.makeSummary(from: [], calendar: calendar)
-        XCTAssertEqual(summary, .empty)
+        XCTAssertEqual(summary.completedSessionCount, 0)
+        XCTAssertNil(summary.lastCompletedSession)
+        XCTAssertNil(summary.usualMeditationMinutesFromMidnight)
+        XCTAssertNil(summary.averageSessionLength)
+        XCTAssertTrue(summary.completedDateComponents.isEmpty)
     }
 
     private func makeDate(
@@ -101,5 +108,53 @@ final class SessionStatsCalculatorTests: XCTestCase {
         }
 
         return date
+    }
+}
+
+final class CompletedSessionRecordMergerTests: XCTestCase {
+    func testNormalizationRemovesApproximateDuplicatesAndSorts() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        let first = CompletedMeditationSessionRecord(
+            startDate: base,
+            endDate: base.addingTimeInterval(300),
+            plannedDuration: 300
+        )
+        // Duplicate within tolerance thresholds.
+        let duplicate = CompletedMeditationSessionRecord(
+            startDate: base.addingTimeInterval(0.2),
+            endDate: base.addingTimeInterval(300.3),
+            plannedDuration: 300.2
+        )
+        let second = CompletedMeditationSessionRecord(
+            startDate: base.addingTimeInterval(600),
+            endDate: base.addingTimeInterval(1200),
+            plannedDuration: 600
+        )
+
+        let normalized = CompletedSessionRecordMerger.normalized(
+            [second, duplicate, first],
+            maxCount: 10
+        )
+
+        XCTAssertEqual(normalized.count, 2)
+        XCTAssertEqual(normalized.first, first)
+        XCTAssertEqual(normalized.last, second)
+    }
+
+    func testNormalizationAppliesMaxCountByKeepingMostRecent() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        let records = (0..<5).map { index in
+            CompletedMeditationSessionRecord(
+                startDate: base.addingTimeInterval(TimeInterval(index * 60)),
+                endDate: base.addingTimeInterval(TimeInterval(index * 60 + 30)),
+                plannedDuration: 30
+            )
+        }
+
+        let normalized = CompletedSessionRecordMerger.normalized(records, maxCount: 3)
+
+        XCTAssertEqual(normalized.count, 3)
+        XCTAssertEqual(normalized.first?.startDate, records[2].startDate)
+        XCTAssertEqual(normalized.last?.startDate, records[4].startDate)
     }
 }

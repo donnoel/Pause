@@ -14,9 +14,13 @@ enum PauseSessionStore {
     private static let suiteName = "group.dn.pause"
     private static let key = "currentSession"
     private static let completedSessionsKey = "completedSessions"
+    private static let cloudCompletedSessionsKey = "completedSessions"
     private static let maxCompletedSessionCount = 3650
     private static let encoder = JSONEncoder()
     private static let decoder = JSONDecoder()
+    private static let ubiquitousStore = NSUbiquitousKeyValueStore.default
+    private static var iCloudSyncConfigured = false
+    private static var iCloudObserver: NSObjectProtocol?
 
     private static var defaults: UserDefaults? {
         UserDefaults(suiteName: suiteName)
@@ -48,6 +52,22 @@ enum PauseSessionStore {
         reloadWidgetTimelines()
     }
 
+    static func configureInsightsICloudSync() {
+        guard !iCloudSyncConfigured else { return }
+        iCloudSyncConfigured = true
+
+        iCloudObserver = NotificationCenter.default.addObserver(
+            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: ubiquitousStore,
+            queue: nil
+        ) { _ in
+            mergeCompletedSessionsFromICloud()
+        }
+
+        ubiquitousStore.synchronize()
+        mergeCompletedSessionsFromICloud()
+    }
+
     static func loadCompletedSessions() -> [CompletedMeditationSessionRecord] {
         guard
             let defaults,
@@ -57,7 +77,10 @@ enum PauseSessionStore {
             return []
         }
 
-        return records.sorted { $0.endDate < $1.endDate }
+        return CompletedSessionRecordMerger.normalized(
+            records,
+            maxCount: maxCompletedSessionCount
+        )
     }
 
     static func recordCompletedSession(
@@ -73,22 +96,50 @@ enum PauseSessionStore {
             plannedDuration: plannedDuration
         )
 
-        var records = loadCompletedSessions()
-        let isDuplicate = records.contains {
-            abs($0.startDate.timeIntervalSince(newRecord.startDate)) < 1 &&
-            abs($0.endDate.timeIntervalSince(newRecord.endDate)) < 1 &&
-            abs($0.plannedDuration - newRecord.plannedDuration) < 0.5
+        let existingRecords = loadCompletedSessions()
+        let mergedRecords = CompletedSessionRecordMerger.normalized(
+            existingRecords + [newRecord],
+            maxCount: maxCompletedSessionCount
+        )
+        guard mergedRecords != existingRecords else { return }
+
+        saveCompletedSessions(mergedRecords, syncToICloud: true)
+        reloadWidgetTimelines()
+    }
+
+    private static func mergeCompletedSessionsFromICloud() {
+        let localRecords = loadCompletedSessions()
+        let cloudRecords = loadCompletedSessionsFromICloud()
+        let mergedRecords = CompletedSessionRecordMerger.normalized(
+            localRecords + cloudRecords,
+            maxCount: maxCompletedSessionCount
+        )
+
+        guard mergedRecords != localRecords || mergedRecords != cloudRecords else { return }
+
+        saveCompletedSessions(mergedRecords, syncToICloud: false)
+        saveCompletedSessionsToICloud(mergedRecords)
+        reloadWidgetTimelines()
+    }
+
+    private static func loadCompletedSessionsFromICloud() -> [CompletedMeditationSessionRecord] {
+        guard
+            let cloudData = ubiquitousStore.data(forKey: cloudCompletedSessionsKey),
+            let records = try? decoder.decode([CompletedMeditationSessionRecord].self, from: cloudData)
+        else {
+            return []
         }
-        guard !isDuplicate else { return }
 
-        records.append(newRecord)
-        records.sort { $0.endDate < $1.endDate }
+        return CompletedSessionRecordMerger.normalized(
+            records,
+            maxCount: maxCompletedSessionCount
+        )
+    }
 
-        if records.count > maxCompletedSessionCount {
-            let overflow = records.count - maxCompletedSessionCount
-            records.removeFirst(overflow)
-        }
-
+    private static func saveCompletedSessions(
+        _ records: [CompletedMeditationSessionRecord],
+        syncToICloud: Bool
+    ) {
         guard
             let defaults,
             let data = try? encoder.encode(records)
@@ -97,7 +148,16 @@ enum PauseSessionStore {
         }
 
         defaults.set(data, forKey: completedSessionsKey)
-        reloadWidgetTimelines()
+
+        if syncToICloud {
+            saveCompletedSessionsToICloud(records)
+        }
+    }
+
+    private static func saveCompletedSessionsToICloud(_ records: [CompletedMeditationSessionRecord]) {
+        guard let data = try? encoder.encode(records) else { return }
+        ubiquitousStore.set(data, forKey: cloudCompletedSessionsKey)
+        ubiquitousStore.synchronize()
     }
     
     private static func reloadWidgetTimelines() {

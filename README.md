@@ -47,6 +47,7 @@ Pause includes a Stats sheet with:
 	•	your usual meditation time (based on completed sessions)
 	•	your last completed meditation
 	•	average completed session length
+	•	iCloud sync for completed-session insights across devices on the same Apple ID
 
 Partial or cancelled sessions are not recorded in the calendar or summary stats.
 
