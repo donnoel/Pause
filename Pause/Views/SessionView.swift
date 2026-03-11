@@ -50,11 +50,7 @@ struct SessionView: View {
     // MARK: - Subviews
     
     private var header: some View {
-        VStack(spacing: 12) {
-            Text("Stillness")
-                .font(.title2.weight(.semibold))
-                .foregroundColor(MeditationColors.textPrimary)
-            
+        VStack(spacing: 8) {
             Text("Choose a duration and rest in silence.\nA soft bell will ring halfway and at the end.")
                 .font(.subheadline)
                 .foregroundColor(MeditationColors.textSecondary)
