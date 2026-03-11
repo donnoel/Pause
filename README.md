@@ -40,6 +40,16 @@ A lightweight AudioChimePlayer wraps AVAudioPlayer to deliver soft, unobtrusive 
 
 The audio system includes graceful error handling for missing or unsupported audio files and works beautifully in the background.
 
+📊 Session Stats
+
+Pause includes a Stats sheet with:
+	•	a calendar that marks days with fully completed sessions
+	•	your usual meditation time (based on completed sessions)
+	•	your last completed meditation
+	•	average completed session length
+
+Partial or cancelled sessions are not recorded in the calendar or summary stats.
+
 🏞 Custom SwiftUI Experience
 
 Pause uses clean, modern SwiftUI views and a lightweight nap-friendly design system across:

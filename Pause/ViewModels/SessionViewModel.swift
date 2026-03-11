@@ -9,10 +9,26 @@ final class SessionViewModel: ObservableObject {
     @Published private(set) var selectedPreset: SessionDurationPreset? = .five
     @Published var isCustomDurationSheetPresented: Bool = false
     @Published private(set) var customDurationMinutes: Int = 5
+    @Published private(set) var statsSummary: SessionStatsSummary = .empty
 
     private let timerEngine: MeditationTimerEngineProtocol
     private let chimePlayer: AudioChimePlaying
     private let backgroundAudio: BackgroundAudioControlling
+    private var sessionStartDate: Date?
+
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
+    private static let dateTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
 
     // MARK: - Init
 
@@ -37,12 +53,56 @@ final class SessionViewModel: ObservableObject {
         }
 
         restoreActiveSessionIfNeeded()
+        refreshStats()
     }
 
     // MARK: - Public API used by the view
 
     var presets: [SessionDurationPreset] {
         SessionDurationPreset.allCases
+    }
+
+    var completedSessionDates: Set<DateComponents> {
+        statsSummary.completedDateComponents
+    }
+
+    var completedSessionCount: Int {
+        statsSummary.completedSessionCount
+    }
+
+    var usualMeditationTimeDescription: String {
+        guard let minutes = statsSummary.usualMeditationMinutesFromMidnight else {
+            return "Not enough completed sessions yet."
+        }
+
+        var components = DateComponents()
+        components.hour = minutes / 60
+        components.minute = minutes % 60
+        components.second = 0
+
+        guard let date = Calendar.current.date(from: components) else {
+            return "Not enough completed sessions yet."
+        }
+
+        return Self.timeFormatter.string(from: date)
+    }
+
+    var lastMeditationDescription: String {
+        guard let session = statsSummary.lastCompletedSession else {
+            return "No completed sessions yet."
+        }
+
+        let completedAt = Self.dateTimeFormatter.string(from: session.endDate)
+        let durationText = formatDurationForSummary(session.plannedDuration)
+        return "\(completedAt) • \(durationText)"
+    }
+
+    var averageSessionLengthDescription: String {
+        guard let averageLength = statsSummary.averageSessionLength else {
+            return "No completed sessions yet."
+        }
+
+        return formatDurationForSummary(averageLength)
     }
 
     func startPreset(_ preset: SessionDurationPreset) {
@@ -77,6 +137,7 @@ final class SessionViewModel: ObservableObject {
         state = .idle
         remaining = 0
         total = 0
+        sessionStartDate = nil
         backgroundAudio.stopKeepingAlive()
         PauseSessionStore.clear()
     }
@@ -95,6 +156,7 @@ final class SessionViewModel: ObservableObject {
             // Session already finished – move to completed and clear store.
             state = .completed
             remaining = 0
+            sessionStartDate = nil
             if let start = info.startDate {
                 total = end.timeIntervalSince(start)
             }
@@ -113,6 +175,7 @@ final class SessionViewModel: ObservableObject {
         total = totalInterval
         remaining = remainingInterval
         state = .running
+        sessionStartDate = info.startDate
 
         backgroundAudio.startKeepingAlive()
         timerEngine.start(duration: remainingInterval)
@@ -128,6 +191,7 @@ final class SessionViewModel: ObservableObject {
         state = .running
 
         let startTime = Date()
+        sessionStartDate = startTime
         let endTime = startTime.addingTimeInterval(duration)
         PauseSessionStore.save(
             PauseSessionInfo(
@@ -150,7 +214,19 @@ final class SessionViewModel: ObservableObject {
         // End-of-session bell
         chimePlayer.play(chimeType: .end)
 
+        let completionDate = Date()
+        let startedAt = sessionStartDate ?? completionDate.addingTimeInterval(-total)
+        if total > 0, completionDate > startedAt {
+            PauseSessionStore.recordCompletedSession(
+                startDate: startedAt,
+                endDate: completionDate,
+                plannedDuration: total
+            )
+        }
+
+        sessionStartDate = nil
         PauseSessionStore.clear()
+        refreshStats()
 
         // Allow the chime to ring out before stopping background keep-alive.
         // We only stop if we're still in the completed state to avoid
@@ -161,5 +237,25 @@ final class SessionViewModel: ObservableObject {
             self.backgroundAudio.stopKeepingAlive()
         }
     }
-}
 
+    private func refreshStats() {
+        let records = PauseSessionStore.loadCompletedSessions()
+        statsSummary = SessionStatsCalculator.makeSummary(from: records)
+    }
+
+    private func formatDurationForSummary(_ duration: TimeInterval) -> String {
+        let roundedSeconds = Int(duration.rounded())
+        let minutes = roundedSeconds / 60
+        let seconds = roundedSeconds % 60
+
+        if minutes > 0, seconds == 0 {
+            return "\(minutes) min"
+        }
+
+        if minutes > 0 {
+            return "\(minutes)m \(seconds)s"
+        }
+
+        return "\(seconds)s"
+    }
+}

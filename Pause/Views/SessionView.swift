@@ -9,6 +9,7 @@ struct SessionView: View {
 
     
     @State private var customMinutesSelection: Int = 5
+    @State private var isStatsSheetPresented: Bool = false
     
     init(viewModel: SessionViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -41,12 +42,15 @@ struct SessionView: View {
         .sheet(isPresented: $viewModel.isCustomDurationSheetPresented) {
             customDurationSheet
         }
+        .sheet(isPresented: $isStatsSheetPresented) {
+            statsSheet
+        }
     }
     
     // MARK: - Subviews
     
     private var header: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             Text("Stillness")
                 .font(.title2.weight(.semibold))
                 .foregroundColor(MeditationColors.textPrimary)
@@ -55,8 +59,24 @@ struct SessionView: View {
                 .font(.subheadline)
                 .foregroundColor(MeditationColors.textSecondary)
                 .multilineTextAlignment(.center)
+
+            Button {
+                isStatsSheetPresented = true
+            } label: {
+                Label("Insights", systemImage: "calendar")
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(MeditationColors.backgroundSecondary)
+                    )
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(MeditationColors.textPrimary)
+            .accessibilityHint(Text("Opens calendar and meditation stats."))
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
     
     private var timeDisplay: some View {
@@ -284,8 +304,70 @@ struct SessionView: View {
             }
         }
     }
+
+    private var statsSheet: some View {
+        NavigationStack {
+            List {
+                Section("Calendar") {
+                    MultiDatePicker(
+                        "Completed sessions",
+                        selection: .constant(viewModel.completedSessionDates)
+                    )
+                    .labelsHidden()
+                    .allowsHitTesting(false)
+                    .accessibilityLabel(Text("Calendar of completed sessions"))
+
+                    Text("Only fully completed sessions are recorded.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+
+                Section("Details") {
+                    statsRow(
+                        title: "Sessions completed",
+                        value: "\(viewModel.completedSessionCount)"
+                    )
+                    statsRow(
+                        title: "Usually meditate",
+                        value: viewModel.usualMeditationTimeDescription
+                    )
+                    statsRow(
+                        title: "Last meditation",
+                        value: viewModel.lastMeditationDescription
+                    )
+                    statsRow(
+                        title: "Average session length",
+                        value: viewModel.averageSessionLengthDescription
+                    )
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle("Insights")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        isStatsSheetPresented = false
+                    }
+                }
+            }
+        }
+    }
     
     // MARK: - Formatting
+
+    @ViewBuilder
+    private func statsRow(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundColor(MeditationColors.textSecondary)
+            Text(value)
+                .font(.body.weight(.medium))
+                .foregroundColor(MeditationColors.textPrimary)
+        }
+        .padding(.vertical, 2)
+    }
     
     private func formattedTime(_ interval: TimeInterval) -> String {
         guard interval > 0 else { return "0:00" }
@@ -318,4 +400,3 @@ extension SessionViewModel {
         self.init(timerEngine: engine, chimePlayer: chimePlayer)
     }
 }
-

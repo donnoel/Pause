@@ -30,5 +30,76 @@ final class MockTimerEngine: MeditationTimerEngineProtocol {
     }
 }
 
+final class SessionStatsCalculatorTests: XCTestCase {
+    private var calendar: Calendar!
 
+    override func setUp() {
+        super.setUp()
+        calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+    }
 
+    func testSummaryCalculatesCalendarLastUsualAndAverage() throws {
+        let first = CompletedMeditationSessionRecord(
+            startDate: try makeDate(year: 2026, month: 3, day: 1, hour: 7, minute: 30),
+            endDate: try makeDate(year: 2026, month: 3, day: 1, hour: 7, minute: 35),
+            plannedDuration: 300
+        )
+        let second = CompletedMeditationSessionRecord(
+            startDate: try makeDate(year: 2026, month: 3, day: 2, hour: 8, minute: 0),
+            endDate: try makeDate(year: 2026, month: 3, day: 2, hour: 8, minute: 15),
+            plannedDuration: 900
+        )
+        let third = CompletedMeditationSessionRecord(
+            startDate: try makeDate(year: 2026, month: 3, day: 3, hour: 8, minute: 30),
+            endDate: try makeDate(year: 2026, month: 3, day: 3, hour: 8, minute: 50),
+            plannedDuration: 1200
+        )
+
+        let summary = SessionStatsCalculator.makeSummary(
+            from: [first, second, third],
+            calendar: calendar
+        )
+
+        XCTAssertEqual(summary.completedSessionCount, 3)
+        XCTAssertEqual(summary.usualMeditationMinutesFromMidnight, 8 * 60)
+        XCTAssertNotNil(summary.averageSessionLength)
+        XCTAssertEqual(summary.averageSessionLength ?? 0, 800, accuracy: 0.001)
+        XCTAssertEqual(summary.lastCompletedSession, third)
+        XCTAssertEqual(summary.completedDateComponents.count, 3)
+        XCTAssertTrue(
+            summary.completedDateComponents.contains(
+                DateComponents(year: 2026, month: 3, day: 2)
+            )
+        )
+    }
+
+    func testSummaryIsEmptyWhenNoRecordsExist() {
+        let summary = SessionStatsCalculator.makeSummary(from: [], calendar: calendar)
+        XCTAssertEqual(summary, .empty)
+    }
+
+    private func makeDate(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int,
+        minute: Int
+    ) throws -> Date {
+        var components = DateComponents()
+        components.calendar = calendar
+        components.timeZone = calendar.timeZone
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        components.minute = minute
+        components.second = 0
+
+        guard let date = calendar.date(from: components) else {
+            throw NSError(domain: "SessionStatsCalculatorTests", code: 1)
+        }
+
+        return date
+    }
+}
