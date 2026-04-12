@@ -62,6 +62,13 @@ final class SessionViewModel: ObservableObject {
         SessionDurationPreset.allCases
     }
 
+    var selectedDuration: TimeInterval {
+        if let preset = selectedPreset {
+            return preset.rawValue
+        }
+        return TimeInterval(customDurationMinutes * 60)
+    }
+
     var completedSessionDates: Set<DateComponents> {
         statsSummary.completedDateComponents
     }
@@ -105,18 +112,30 @@ final class SessionViewModel: ObservableObject {
         return formatDurationForSummary(averageLength)
     }
 
-    func startPreset(_ preset: SessionDurationPreset) {
+    func selectPreset(_ preset: SessionDurationPreset) {
         selectedPreset = preset
+    }
+
+    func startPreset(_ preset: SessionDurationPreset) {
+        selectPreset(preset)
         let duration = preset.rawValue
         start(duration: duration)
     }
 
-    func startCustomDuration(minutes: Int) {
+    func selectCustomDuration(minutes: Int) {
         // Clamp to at least 1 minute to avoid weirdness.
         customDurationMinutes = max(1, minutes)
         selectedPreset = nil
+    }
+
+    func startCustomDuration(minutes: Int) {
+        selectCustomDuration(minutes: minutes)
         let seconds = TimeInterval(customDurationMinutes * 60)
         start(duration: seconds)
+    }
+
+    func startSelectedSession() {
+        start(duration: selectedDuration)
     }
 
     func togglePause() {

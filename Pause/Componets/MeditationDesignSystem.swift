@@ -40,6 +40,83 @@ enum MeditationColors {
     /// This is intentionally subtle so the timer ring and chips feel calm.
     static let backgroundSecondary: Color = Color.white.opacity(0.22)
 
+    static func surfacePrimary(for colorScheme: ColorScheme) -> Color {
+        switch colorScheme {
+        case .dark:
+            return Color.white.opacity(0.10)
+        default:
+            return Color.white.opacity(0.30)
+        }
+    }
+
+    static func surfaceStroke(for colorScheme: ColorScheme) -> Color {
+        switch colorScheme {
+        case .dark:
+            return Color.white.opacity(0.14)
+        default:
+            return Color.white.opacity(0.45)
+        }
+    }
+
+    static func orbOuterGradient(for colorScheme: ColorScheme) -> RadialGradient {
+        switch colorScheme {
+        case .dark:
+            return RadialGradient(
+                colors: [
+                    Color(red: 0x2B/255.0, green: 0x35/255.0, blue: 0x54/255.0),
+                    Color(red: 0x16/255.0, green: 0x1D/255.0, blue: 0x34/255.0)
+                ],
+                center: .center,
+                startRadius: 0,
+                endRadius: 180
+            )
+        default:
+            return RadialGradient(
+                colors: [
+                    Color(red: 0xFA/255.0, green: 0xFD/255.0, blue: 0xFF/255.0),
+                    Color(red: 0xE8/255.0, green: 0xF0/255.0, blue: 0xFF/255.0)
+                ],
+                center: .center,
+                startRadius: 0,
+                endRadius: 180
+            )
+        }
+    }
+
+    static func orbInnerGradient(for colorScheme: ColorScheme) -> RadialGradient {
+        switch colorScheme {
+        case .dark:
+            return RadialGradient(
+                colors: [
+                    accentPrimary.opacity(0.36),
+                    accentPrimary.opacity(0.16)
+                ],
+                center: .center,
+                startRadius: 0,
+                endRadius: 120
+            )
+        default:
+            return RadialGradient(
+                colors: [
+                    accentPrimary.opacity(0.34),
+                    accentPrimary.opacity(0.12)
+                ],
+                center: .center,
+                startRadius: 0,
+                endRadius: 120
+            )
+        }
+    }
+
+    static func ringTrack(for colorScheme: ColorScheme) -> Color {
+        switch colorScheme {
+        case .dark:
+            return Color.white.opacity(0.20)
+        default:
+            return Color.white.opacity(0.60)
+        }
+    }
+
     /// Primary accent for interactive elements, tied to the PauseAccent color asset.
     /// If the asset is missing, this will gracefully fall back to system accent.
     static let accentPrimary: Color = Color("PauseAccent")

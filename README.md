@@ -31,6 +31,8 @@ Pause offers preset session lengths — 5, 10, 15, and 20 minutes — powered by
 	•	session completion
 	•	persistent state during app backgrounding
 
+Preset and custom duration controls now configure the upcoming session only. Starting is always a deliberate tap on the primary **Begin** action.
+
 🔔 Gentle Audio Chimes
 
 A lightweight AudioChimePlayer wraps AVAudioPlayer to deliver soft, unobtrusive tones for:
