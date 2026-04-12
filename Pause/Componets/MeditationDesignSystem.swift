@@ -10,9 +10,8 @@ enum MeditationColors {
     /// This is a very soft blue-to-lilac vertical gradient.
     static let backgroundPrimary: LinearGradient = LinearGradient(
         colors: [
-            Color(red: 0xF8/255.0, green: 0xFB/255.0, blue: 0xFF/255.0), // #F8FBFF
-            Color(red: 0xF2/255.0, green: 0xF5/255.0, blue: 0xFF/255.0), // #F2F5FF
-            Color(red: 0xEC/255.0, green: 0xE9/255.0, blue: 0xFF/255.0)  // #ECE9FF
+            Color(red: 0xF1/255.0, green: 0xF5/255.0, blue: 0xFB/255.0), // #F1F5FB
+            Color(red: 0xE9/255.0, green: 0xEE/255.0, blue: 0xF7/255.0)  // #E9EEF7
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -24,9 +23,8 @@ enum MeditationColors {
         case .dark:
             return LinearGradient(
                 colors: [
-                    Color(red: 0x06/255.0, green: 0x0A/255.0, blue: 0x12/255.0),
-                    Color(red: 0x10/255.0, green: 0x14/255.0, blue: 0x24/255.0),
-                    Color(red: 0x14/255.0, green: 0x18/255.0, blue: 0x30/255.0)
+                    Color(red: 0x08/255.0, green: 0x0E/255.0, blue: 0x1A/255.0),
+                    Color(red: 0x11/255.0, green: 0x18/255.0, blue: 0x29/255.0)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -38,23 +36,41 @@ enum MeditationColors {
 
     /// Soft surface color used for rings, pill backgrounds, etc.
     /// This is intentionally subtle so the timer ring and chips feel calm.
-    static let backgroundSecondary: Color = Color.white.opacity(0.22)
+    static let backgroundSecondary: Color = Color.white.opacity(0.24)
 
     static func surfacePrimary(for colorScheme: ColorScheme) -> Color {
         switch colorScheme {
         case .dark:
             return Color.white.opacity(0.10)
         default:
-            return Color.white.opacity(0.30)
+            return Color.white.opacity(0.74)
         }
     }
 
     static func surfaceStroke(for colorScheme: ColorScheme) -> Color {
         switch colorScheme {
         case .dark:
-            return Color.white.opacity(0.14)
+            return Color.white.opacity(0.20)
         default:
-            return Color.white.opacity(0.45)
+            return Color.black.opacity(0.10)
+        }
+    }
+
+    static func surfaceElevated(for colorScheme: ColorScheme) -> Color {
+        switch colorScheme {
+        case .dark:
+            return Color.white.opacity(0.06)
+        default:
+            return Color.white.opacity(0.54)
+        }
+    }
+
+    static func surfaceElevatedStroke(for colorScheme: ColorScheme) -> Color {
+        switch colorScheme {
+        case .dark:
+            return Color.white.opacity(0.18)
+        default:
+            return Color.black.opacity(0.10)
         }
     }
 
@@ -63,8 +79,8 @@ enum MeditationColors {
         case .dark:
             return RadialGradient(
                 colors: [
-                    Color(red: 0x2B/255.0, green: 0x35/255.0, blue: 0x54/255.0),
-                    Color(red: 0x16/255.0, green: 0x1D/255.0, blue: 0x34/255.0)
+                    Color(red: 0x4D/255.0, green: 0x59/255.0, blue: 0x79/255.0),
+                    Color(red: 0x1B/255.0, green: 0x25/255.0, blue: 0x3F/255.0)
                 ],
                 center: .center,
                 startRadius: 0,
@@ -73,8 +89,8 @@ enum MeditationColors {
         default:
             return RadialGradient(
                 colors: [
-                    Color(red: 0xFA/255.0, green: 0xFD/255.0, blue: 0xFF/255.0),
-                    Color(red: 0xE8/255.0, green: 0xF0/255.0, blue: 0xFF/255.0)
+                    Color(red: 0xFF/255.0, green: 0xFF/255.0, blue: 0xFF/255.0),
+                    Color(red: 0xC8/255.0, green: 0xD9/255.0, blue: 0xF7/255.0)
                 ],
                 center: .center,
                 startRadius: 0,
@@ -88,8 +104,8 @@ enum MeditationColors {
         case .dark:
             return RadialGradient(
                 colors: [
-                    accentPrimary.opacity(0.36),
-                    accentPrimary.opacity(0.16)
+                    accentPrimary.opacity(0.34),
+                    accentPrimary.opacity(0.10)
                 ],
                 center: .center,
                 startRadius: 0,
@@ -98,8 +114,8 @@ enum MeditationColors {
         default:
             return RadialGradient(
                 colors: [
-                    accentPrimary.opacity(0.34),
-                    accentPrimary.opacity(0.12)
+                    accentPrimary.opacity(0.30),
+                    accentPrimary.opacity(0.08)
                 ],
                 center: .center,
                 startRadius: 0,
@@ -111,9 +127,9 @@ enum MeditationColors {
     static func ringTrack(for colorScheme: ColorScheme) -> Color {
         switch colorScheme {
         case .dark:
-            return Color.white.opacity(0.20)
+            return Color.white.opacity(0.26)
         default:
-            return Color.white.opacity(0.60)
+            return Color.black.opacity(0.12)
         }
     }
 
@@ -127,8 +143,8 @@ enum MeditationColors {
 
     /// Text colors follow system dynamic colors so they remain legible
     /// in both light and dark appearances.
-    static var textPrimary: Color { Color.primary.opacity(0.9) }
-    static var textSecondary: Color { Color.secondary.opacity(0.85) }
+    static var textPrimary: Color { Color.primary.opacity(0.96) }
+    static var textSecondary: Color { Color.secondary.opacity(0.82) }
 }
 
 /// Primary large button used for the main Call To Action (Start / Pause / Resume).
@@ -138,17 +154,21 @@ struct PrimaryButtonStyle: ButtonStyle {
         configuration.label
             .font(.headline.weight(.semibold))
             .padding(.horizontal, 24)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, minHeight: 48)
+            .padding(.vertical, 13)
+            .frame(maxWidth: .infinity, minHeight: 46)
             .background(
                 Capsule(style: .continuous)
                     .fill(MeditationColors.accentPrimary)
                     .shadow(
-                        color: MeditationColors.accentPrimary.opacity(configuration.isPressed ? 0.15 : 0.30),
-                        radius: configuration.isPressed ? 8 : 16,
+                        color: MeditationColors.accentPrimary.opacity(configuration.isPressed ? 0.08 : 0.16),
+                        radius: configuration.isPressed ? 5 : 8,
                         x: 0,
-                        y: configuration.isPressed ? 4 : 10
+                        y: configuration.isPressed ? 2 : 4
                     )
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(Color.white.opacity(configuration.isPressed ? 0.14 : 0.24), lineWidth: 1)
             )
             .foregroundColor(.white)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
@@ -160,6 +180,8 @@ struct PrimaryButtonStyle: ButtonStyle {
 /// A soft pill used for duration selection chips.
 /// Selected state uses a gentle accent fill and a subtle outline.
 struct DurationPill: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -171,23 +193,38 @@ struct DurationPill: View {
         } label: {
             Text(title)
                 .font(.body.weight(isSelected ? .semibold : .regular))
-                .padding(.horizontal, 16)
+                .lineLimit(1)
+                .minimumScaleFactor(0.92)
+                .padding(.horizontal, 15)
                 .padding(.vertical, 10)
                 .frame(minWidth: 44, minHeight: 44) // tap target
                 .background(
                     Capsule(style: .continuous)
-                        .fill(isSelected ? MeditationColors.accentSoft : MeditationColors.backgroundSecondary)
+                        .fill(
+                            isSelected
+                            ? AnyShapeStyle(
+                                LinearGradient(
+                                    colors: [
+                                        MeditationColors.accentPrimary.opacity(colorScheme == .dark ? 0.88 : 0.92),
+                                        MeditationColors.accentPrimary.opacity(colorScheme == .dark ? 0.72 : 0.80)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            : AnyShapeStyle(MeditationColors.surfaceElevated(for: colorScheme))
+                        )
                 )
                 .overlay(
                     Capsule(style: .continuous)
                         .strokeBorder(
                             isSelected
-                            ? MeditationColors.accentPrimary.opacity(0.75)
-                            : Color.white.opacity(0.22),
-                            lineWidth: isSelected ? 1.5 : 1
+                            ? Color.white.opacity(colorScheme == .dark ? 0.16 : 0.30)
+                            : MeditationColors.surfaceElevatedStroke(for: colorScheme),
+                            lineWidth: 1
                         )
                 )
-                .foregroundColor(isSelected ? MeditationColors.accentPrimary : MeditationColors.textPrimary)
+                .foregroundColor(isSelected ? .white : MeditationColors.textPrimary)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(title))

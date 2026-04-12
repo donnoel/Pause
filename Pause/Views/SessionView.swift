@@ -5,6 +5,7 @@ struct SessionView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.colorScheme) private var colorScheme
 
     @ScaledMetric(relativeTo: .largeTitle) private var heroBaseSize: CGFloat = 230
@@ -33,6 +34,8 @@ struct SessionView: View {
         }
         .sheet(isPresented: $isStatsSheetPresented) {
             statsSheet
+                .presentationDetents(insightsPresentationDetents)
+                .presentationDragIndicator(.visible)
         }
         .onAppear {
             updateOrbMotionState()
@@ -48,9 +51,11 @@ struct SessionView: View {
     // MARK: - Layout
 
     private func sessionLayout(minHeight: CGFloat) -> some View {
-        VStack(spacing: 24) {
-            topRegion
-            heroRegion
+        VStack(spacing: isRegularWidth ? 22 : 18) {
+            VStack(spacing: isRegularWidth ? 8 : 6) {
+                topRegion
+                heroRegion
+            }
 
             if viewModel.state == .idle {
                 configurationRegion
@@ -62,23 +67,27 @@ struct SessionView: View {
 
             actionRegion
         }
-        .padding(.horizontal, horizontalSizeClass == .regular ? 32 : 20)
-        .padding(.top, 20)
-        .padding(.bottom, 24)
+        .padding(.horizontal, isRegularWidth ? 24 : 16)
+        .padding(.top, isRegularWidth ? 18 : 14)
+        .padding(.bottom, isRegularWidth ? 22 : 18)
         .frame(maxWidth: maxContentWidth)
         .frame(minHeight: minHeight, alignment: .top)
         .frame(maxWidth: .infinity, alignment: .top)
     }
 
+    private var isRegularWidth: Bool {
+        horizontalSizeClass == .regular
+    }
+
     private var maxContentWidth: CGFloat {
-        horizontalSizeClass == .regular ? 580 : 680
+        isRegularWidth ? 900 : 760
     }
 
     // MARK: - Regions
 
     private var topRegion: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("Pause")
                     .font(.system(.title2, design: .rounded).weight(.semibold))
                     .foregroundColor(MeditationColors.textPrimary)
@@ -102,16 +111,16 @@ struct SessionView: View {
                 isStatsSheetPresented = true
             } label: {
                 Label("Insights", systemImage: "chart.bar")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                    .font(.footnote.weight(.semibold))
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 7)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(MeditationColors.surfacePrimary(for: colorScheme))
+                            .fill(MeditationColors.surfaceElevated(for: colorScheme))
                     )
                     .overlay(
                         Capsule(style: .continuous)
-                            .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
+                            .stroke(MeditationColors.surfaceElevatedStroke(for: colorScheme), lineWidth: 1)
                     )
             }
             .buttonStyle(.plain)
@@ -121,7 +130,7 @@ struct SessionView: View {
     }
 
     private var heroRegion: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             breathingOrb
                 .frame(width: heroDiameter, height: heroDiameter)
                 .frame(maxWidth: .infinity)
@@ -144,43 +153,55 @@ struct SessionView: View {
     }
 
     private var configurationRegion: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Ritual")
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(MeditationColors.textPrimary)
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 9) {
+                Text("Ritual")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(MeditationColors.textPrimary)
 
-            ViewThatFits(in: .horizontal) {
-                ritualRow
-
-                ScrollView(.horizontal, showsIndicators: false) {
+                ViewThatFits(in: .horizontal) {
                     ritualRow
-                        .padding(.vertical, 2)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        ritualRow
+                            .padding(.vertical, 2)
+                    }
                 }
             }
 
-            Text("Duration")
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(MeditationColors.textPrimary)
+            Divider()
+                .overlay(MeditationColors.surfaceStroke(for: colorScheme).opacity(0.48))
 
-            ViewThatFits(in: .horizontal) {
-                durationRow
+            VStack(alignment: .leading, spacing: 9) {
+                Text("Duration")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(MeditationColors.textPrimary)
 
-                ScrollView(.horizontal, showsIndicators: false) {
+                ViewThatFits(in: .horizontal) {
                     durationRow
-                        .padding(.vertical, 2)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        durationRow
+                            .padding(.vertical, 2)
+                    }
                 }
             }
 
-            Text("Breathing Style")
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(MeditationColors.textPrimary)
+            Divider()
+                .overlay(MeditationColors.surfaceStroke(for: colorScheme).opacity(0.48))
 
-            ViewThatFits(in: .horizontal) {
-                breathingStyleRow
+            VStack(alignment: .leading, spacing: 9) {
+                Text("Breathing Style")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(MeditationColors.textPrimary)
 
-                ScrollView(.horizontal, showsIndicators: false) {
+                ViewThatFits(in: .horizontal) {
                     breathingStyleRow
-                        .padding(.vertical, 2)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        breathingStyleRow
+                            .padding(.vertical, 2)
+                    }
                 }
             }
 
@@ -188,21 +209,24 @@ struct SessionView: View {
                 .font(.footnote)
                 .foregroundColor(MeditationColors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 4)
+                .padding(.top, 2)
         }
-        .padding(16)
+        .padding(.horizontal, isRegularWidth ? 24 : 18)
+        .padding(.vertical, isRegularWidth ? 20 : 18)
         .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
                 .fill(MeditationColors.surfacePrimary(for: colorScheme))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
                 .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
         )
         .accessibilityElement(children: .contain)
     }
 
     private var actionRegion: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             Button(action: primaryButtonTapped) {
                 Text(primaryButtonTitle)
             }
@@ -234,6 +258,7 @@ struct SessionView: View {
                 .accessibilityLabel(Text("Prepare a new session"))
             }
         }
+        .frame(maxWidth: actionMaxWidth)
     }
 
     private var reflectionRegion: some View {
@@ -261,7 +286,7 @@ struct SessionView: View {
                     .foregroundColor(MeditationColors.textSecondary)
             }
         }
-        .padding(16)
+        .padding(isRegularWidth ? 18 : 16)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .fill(MeditationColors.surfacePrimary(for: colorScheme))
@@ -286,40 +311,40 @@ struct SessionView: View {
                         .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
                 )
                 .shadow(
-                    color: MeditationColors.accentPrimary.opacity(colorScheme == .dark ? 0.24 : 0.18),
-                    radius: colorScheme == .dark ? 18 : 14,
+                    color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.12),
+                    radius: colorScheme == .dark ? 14 : 10,
                     x: 0,
-                    y: 8
+                    y: 6
                 )
 
             Circle()
                 .fill(MeditationColors.orbInnerGradient(for: colorScheme))
-                .padding(heroDiameter * 0.12)
+                .padding(heroDiameter * 0.135)
                 .scaleEffect(orbScale)
                 .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: isOrbExpanded)
 
             Circle()
-                .stroke(MeditationColors.ringTrack(for: colorScheme), lineWidth: 9)
-                .padding(4)
+                .stroke(MeditationColors.ringTrack(for: colorScheme), lineWidth: 7)
+                .padding(5)
 
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
                     style: StrokeStyle(
-                        lineWidth: 9,
+                        lineWidth: 7,
                         lineCap: .round,
                         lineJoin: .round
                     )
                 )
                 .foregroundStyle(MeditationColors.accentPrimary)
                 .shadow(
-                    color: MeditationColors.accentPrimary.opacity(0.28),
-                    radius: 9,
+                    color: MeditationColors.accentPrimary.opacity(0.18),
+                    radius: 5,
                     x: 0,
-                    y: 4
+                    y: 2
                 )
                 .rotationEffect(.degrees(-90))
-                .padding(4)
+                .padding(5)
                 .opacity(progress == 0 ? 0.35 : 1)
 
             VStack(spacing: 6) {
@@ -351,6 +376,7 @@ struct SessionView: View {
                 ) {
                     viewModel.selectPreset(preset)
                 }
+                .fixedSize(horizontal: true, vertical: false)
                 .accessibilityHint(Text("Selects a \(preset.label) session."))
             }
 
@@ -361,6 +387,7 @@ struct SessionView: View {
                 customMinutesSelection = viewModel.customDurationMinutes
                 viewModel.isCustomDurationSheetPresented = true
             }
+            .fixedSize(horizontal: true, vertical: false)
             .accessibilityHint(Text("Choose a custom duration."))
         }
     }
@@ -374,6 +401,7 @@ struct SessionView: View {
                 ) {
                     viewModel.selectRitualPreset(ritual)
                 }
+                .fixedSize(horizontal: true, vertical: false)
                 .accessibilityHint(Text("Selects \(ritual.title) ritual preset."))
             }
         }
@@ -388,6 +416,7 @@ struct SessionView: View {
                 ) {
                     viewModel.selectBreathingStyle(style)
                 }
+                .fixedSize(horizontal: true, vertical: false)
                 .accessibilityHint(Text("Selects \(style.title) breathing style."))
             }
         }
@@ -402,6 +431,7 @@ struct SessionView: View {
                 ) {
                     viewModel.selectReflection(reflection)
                 }
+                .fixedSize(horizontal: true, vertical: false)
                 .accessibilityHint(Text("Records \(reflection.title.lowercased()) reflection."))
             }
         }
@@ -492,7 +522,13 @@ struct SessionView: View {
     }
 
     private var heroDiameter: CGFloat {
-        horizontalSizeClass == .regular ? heroBaseSize * 1.25 : heroBaseSize
+        if isRegularWidth {
+            return heroBaseSize * 1.34
+        }
+        if verticalSizeClass == .compact {
+            return heroBaseSize * 1.10
+        }
+        return heroBaseSize * 1.03
     }
 
     private var orbScale: CGFloat {
@@ -585,11 +621,23 @@ struct SessionView: View {
     }
 
     private var timerFont: Font {
-        if horizontalSizeClass == .regular {
-            return .system(size: 58, weight: .medium, design: .rounded)
-        } else {
-            return .system(size: 50, weight: .medium, design: .rounded)
+        if isRegularWidth {
+            return .system(size: 60, weight: .medium, design: .rounded)
         }
+        if verticalSizeClass == .compact {
+            return .system(size: 52, weight: .medium, design: .rounded)
+        }
+        return .system(size: 50, weight: .medium, design: .rounded)
+    }
+
+    private var actionMaxWidth: CGFloat {
+        if isRegularWidth {
+            return 640
+        }
+        if verticalSizeClass == .compact {
+            return 560
+        }
+        return .infinity
     }
 
     // MARK: - Sheets
@@ -641,34 +689,78 @@ struct SessionView: View {
     }
 
     private var statsSheet: some View {
-        NavigationStack {
-            ZStack {
-                MeditationColors.backgroundPrimary(for: colorScheme)
-                    .ignoresSafeArea()
+        ZStack {
+            MeditationColors.backgroundPrimary(for: colorScheme)
+                .ignoresSafeArea()
 
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        insightsHeaderCard
-                        insightsStatGrid
-                        insightsCalendarCard
-                    }
-                    .padding(.horizontal, horizontalSizeClass == .regular ? 28 : 16)
-                    .padding(.top, 16)
-                    .padding(.bottom, 24)
-                    .frame(maxWidth: maxContentWidth)
-                    .frame(maxWidth: .infinity, alignment: .top)
-                }
-            }
-            .navigationTitle("Insights")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        isStatsSheetPresented = false
+            VStack(spacing: 0) {
+                insightsSheetHeader
+
+                if isRegularWidth {
+                    insightsContent
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                } else {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        insightsContent
                     }
                 }
             }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .safeAreaPadding(.top, isRegularWidth ? 18 : 12)
+            .safeAreaPadding(.bottom, isRegularWidth ? 10 : 0)
         }
+    }
+
+    private var insightsSheetHeader: some View {
+        HStack {
+            Text("Insights")
+                .font(.system(.headline, design: .rounded).weight(.semibold))
+                .foregroundColor(MeditationColors.textPrimary)
+
+            Spacer(minLength: 12)
+
+            Button("Done") {
+                isStatsSheetPresented = false
+            }
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(MeditationColors.surfaceElevated(for: colorScheme))
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(MeditationColors.surfaceElevatedStroke(for: colorScheme), lineWidth: 1)
+            )
+            .buttonStyle(.plain)
+            .foregroundColor(MeditationColors.textPrimary)
+            .accessibilityLabel(Text("Done"))
+            .accessibilityHint(Text("Closes insights"))
+        }
+        .padding(.horizontal, isRegularWidth ? 26 : 16)
+        .padding(.top, isRegularWidth ? 6 : 4)
+        .padding(.bottom, 8)
+    }
+
+    private var insightsContent: some View {
+        VStack(alignment: .leading, spacing: isRegularWidth ? 12 : 14) {
+            insightsHeaderCard
+            insightsStatGrid
+            insightsCalendarCard
+        }
+        .padding(.horizontal, isRegularWidth ? 26 : 16)
+        .padding(.top, 8)
+        .padding(.bottom, isRegularWidth ? 24 : 24)
+        .frame(maxWidth: isRegularWidth ? 820 : maxContentWidth)
+        .frame(maxWidth: .infinity, alignment: .top)
+    }
+
+    private var insightsPresentationDetents: Set<PresentationDetent> {
+        if isRegularWidth {
+            return [.fraction(0.96)]
+        }
+        return [.large]
     }
 
     private var insightsHeaderCard: some View {
@@ -688,7 +780,7 @@ struct SessionView: View {
     }
 
     private var insightsStatGrid: some View {
-        let minimumWidth: CGFloat = horizontalSizeClass == .regular ? 240 : 160
+        let minimumWidth: CGFloat = horizontalSizeClass == .regular ? 180 : 160
         let columns = [GridItem(.adaptive(minimum: minimumWidth), spacing: 12, alignment: .top)]
 
         return LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
