@@ -91,6 +91,7 @@ struct SessionView: View {
                 Text("Pause")
                     .font(.system(.title2, design: .rounded).weight(.semibold))
                     .foregroundColor(MeditationColors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
 
                 Text(contextLine)
                     .font(.subheadline)
@@ -153,30 +154,18 @@ struct SessionView: View {
     }
 
     private var configurationRegion: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 9) {
-                Text("Ritual")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(MeditationColors.textPrimary)
-
-                ViewThatFits(in: .horizontal) {
-                    ritualRow
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        ritualRow
-                            .padding(.vertical, 2)
-                    }
-                }
+        SessionConfigurationCard(
+            isRegularWidth: isRegularWidth,
+            colorScheme: colorScheme,
+            selectionDescription: selectionDescription
+        ) {
+            configurationSection(title: "Ritual") {
+                ritualSelector
             }
 
-            Divider()
-                .overlay(MeditationColors.surfaceStroke(for: colorScheme).opacity(0.48))
+            configurationDivider
 
-            VStack(alignment: .leading, spacing: 9) {
-                Text("Duration")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(MeditationColors.textPrimary)
-
+            configurationSection(title: "Duration") {
                 ViewThatFits(in: .horizontal) {
                     durationRow
 
@@ -187,42 +176,12 @@ struct SessionView: View {
                 }
             }
 
-            Divider()
-                .overlay(MeditationColors.surfaceStroke(for: colorScheme).opacity(0.48))
+            configurationDivider
 
-            VStack(alignment: .leading, spacing: 9) {
-                Text("Breathing Style")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(MeditationColors.textPrimary)
-
-                ViewThatFits(in: .horizontal) {
-                    breathingStyleRow
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        breathingStyleRow
-                            .padding(.vertical, 2)
-                    }
-                }
+            configurationSection(title: "Breathing Style") {
+                breathingStyleSelector
             }
-
-            Text(selectionDescription)
-                .font(.footnote)
-                .foregroundColor(MeditationColors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 4)
-                .padding(.top, 2)
         }
-        .padding(.horizontal, isRegularWidth ? 24 : 18)
-        .padding(.vertical, isRegularWidth ? 20 : 18)
-        .background(
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(MeditationColors.surfacePrimary(for: colorScheme))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
-        )
-        .accessibilityElement(children: .contain)
     }
 
     private var actionRegion: some View {
@@ -301,69 +260,17 @@ struct SessionView: View {
     // MARK: - Pieces
 
     private var breathingOrb: some View {
-        let progress = ringProgress
-
-        return ZStack {
-            Circle()
-                .fill(MeditationColors.orbOuterGradient(for: colorScheme))
-                .overlay(
-                    Circle()
-                        .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
-                )
-                .shadow(
-                    color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.12),
-                    radius: colorScheme == .dark ? 14 : 10,
-                    x: 0,
-                    y: 6
-                )
-
-            Circle()
-                .fill(MeditationColors.orbInnerGradient(for: colorScheme))
-                .padding(heroDiameter * 0.135)
-                .scaleEffect(orbScale)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: isOrbExpanded)
-
-            Circle()
-                .stroke(MeditationColors.ringTrack(for: colorScheme), lineWidth: 7)
-                .padding(5)
-
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(
-                    style: StrokeStyle(
-                        lineWidth: 7,
-                        lineCap: .round,
-                        lineJoin: .round
-                    )
-                )
-                .foregroundStyle(MeditationColors.accentPrimary)
-                .shadow(
-                    color: MeditationColors.accentPrimary.opacity(0.18),
-                    radius: 5,
-                    x: 0,
-                    y: 2
-                )
-                .rotationEffect(.degrees(-90))
-                .padding(5)
-                .opacity(progress == 0 ? 0.35 : 1)
-
-            VStack(spacing: 6) {
-                Text(formattedTime(displayedInterval))
-                    .font(timerFont)
-                    .monospacedDigit()
-                    .foregroundColor(MeditationColors.textPrimary)
-
-                Text(centerCaption)
-                    .font(.subheadline)
-                    .foregroundColor(MeditationColors.textSecondary)
-            }
-            .padding(24)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            Text(
-                "Time \(viewModel.state == .running || viewModel.state == .paused ? "remaining" : "selected"): \(formattedAccessibleTime(displayedInterval))"
-            )
+        BreathingOrbView(
+            progress: ringProgress,
+            heroDiameter: heroDiameter,
+            orbScale: orbScale,
+            isOrbExpanded: isOrbExpanded,
+            reduceMotion: reduceMotion,
+            colorScheme: colorScheme,
+            timerText: formattedTime(displayedInterval),
+            timerFont: timerFont,
+            centerCaption: centerCaption,
+            accessibilityLabel: "Time \(viewModel.state == .running || viewModel.state == .paused ? "remaining" : "selected"): \(formattedAccessibleTime(displayedInterval))"
         )
     }
 
@@ -407,6 +314,26 @@ struct SessionView: View {
         }
     }
 
+    private var ritualSelector: some View {
+        Group {
+            if isRegularWidth {
+                ViewThatFits(in: .horizontal) {
+                    ritualRow
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        ritualRow
+                            .padding(.vertical, 2)
+                    }
+                }
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    ritualRow
+                        .padding(.vertical, 2)
+                }
+            }
+        }
+    }
+
     private var breathingStyleRow: some View {
         HStack(spacing: 8) {
             ForEach(viewModel.breathingStyles) { style in
@@ -418,6 +345,26 @@ struct SessionView: View {
                 }
                 .fixedSize(horizontal: true, vertical: false)
                 .accessibilityHint(Text("Selects \(style.title) breathing style."))
+            }
+        }
+    }
+
+    private var breathingStyleSelector: some View {
+        Group {
+            if isRegularWidth {
+                ViewThatFits(in: .horizontal) {
+                    breathingStyleRow
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        breathingStyleRow
+                            .padding(.vertical, 2)
+                    }
+                }
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    breathingStyleRow
+                        .padding(.vertical, 2)
+                }
             }
         }
     }
@@ -689,58 +636,14 @@ struct SessionView: View {
     }
 
     private var statsSheet: some View {
-        ZStack {
-            MeditationColors.backgroundPrimary(for: colorScheme)
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                insightsSheetHeader
-
-                if isRegularWidth {
-                    insightsContent
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        insightsContent
-                    }
-                }
-            }
-            .frame(maxHeight: .infinity, alignment: .top)
-            .safeAreaPadding(.top, isRegularWidth ? 18 : 12)
-            .safeAreaPadding(.bottom, isRegularWidth ? 10 : 0)
+        InsightsSheetView(
+            isPresented: $isStatsSheetPresented,
+            isRegularWidth: isRegularWidth,
+            shouldScroll: shouldScrollInsights,
+            colorScheme: colorScheme
+        ) {
+            insightsContent
         }
-    }
-
-    private var insightsSheetHeader: some View {
-        HStack {
-            Text("Insights")
-                .font(.system(.headline, design: .rounded).weight(.semibold))
-                .foregroundColor(MeditationColors.textPrimary)
-
-            Spacer(minLength: 12)
-
-            Button("Done") {
-                isStatsSheetPresented = false
-            }
-            .font(.subheadline.weight(.semibold))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(MeditationColors.surfaceElevated(for: colorScheme))
-            )
-            .overlay(
-                Capsule(style: .continuous)
-                    .stroke(MeditationColors.surfaceElevatedStroke(for: colorScheme), lineWidth: 1)
-            )
-            .buttonStyle(.plain)
-            .foregroundColor(MeditationColors.textPrimary)
-            .accessibilityLabel(Text("Done"))
-            .accessibilityHint(Text("Closes insights"))
-        }
-        .padding(.horizontal, isRegularWidth ? 26 : 16)
-        .padding(.top, isRegularWidth ? 6 : 4)
-        .padding(.bottom, 8)
     }
 
     private var insightsContent: some View {
@@ -758,9 +661,13 @@ struct SessionView: View {
 
     private var insightsPresentationDetents: Set<PresentationDetent> {
         if isRegularWidth {
-            return [.fraction(0.96)]
+            return [.fraction(verticalSizeClass == .compact ? 0.98 : 0.97)]
         }
         return [.large]
+    }
+
+    private var shouldScrollInsights: Bool {
+        !isRegularWidth || verticalSizeClass == .compact
     }
 
     private var insightsHeaderCard: some View {
@@ -769,6 +676,7 @@ struct SessionView: View {
                 Text("Your rhythm")
                     .font(.system(.title3, design: .rounded).weight(.semibold))
                     .foregroundColor(MeditationColors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
 
                 Text(insightsHeaderDescription)
                     .font(.body)
@@ -857,6 +765,26 @@ struct SessionView: View {
             )
     }
 
+    @ViewBuilder
+    private func configurationSection<Content: View>(
+        title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(MeditationColors.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+
+            content()
+        }
+    }
+
+    private var configurationDivider: some View {
+        Divider()
+            .overlay(MeditationColors.surfaceStroke(for: colorScheme).opacity(0.48))
+    }
+
     private var insightsHeaderDescription: String {
         if viewModel.completedSessionCount == 0 {
             return "No completed sessions yet. A short reset session is a good place to start."
@@ -891,6 +819,201 @@ struct SessionView: View {
         } else {
             return "\(seconds) seconds"
         }
+    }
+}
+
+private struct BreathingOrbView: View {
+    let progress: CGFloat
+    let heroDiameter: CGFloat
+    let orbScale: CGFloat
+    let isOrbExpanded: Bool
+    let reduceMotion: Bool
+    let colorScheme: ColorScheme
+    let timerText: String
+    let timerFont: Font
+    let centerCaption: String
+    let accessibilityLabel: String
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(MeditationColors.orbOuterGradient(for: colorScheme))
+                .overlay(
+                    Circle()
+                        .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
+                )
+                .shadow(
+                    color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.12),
+                    radius: colorScheme == .dark ? 14 : 10,
+                    x: 0,
+                    y: 6
+                )
+
+            Circle()
+                .fill(MeditationColors.orbInnerGradient(for: colorScheme))
+                .padding(heroDiameter * 0.135)
+                .scaleEffect(orbScale)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: isOrbExpanded)
+
+            Circle()
+                .stroke(MeditationColors.ringTrack(for: colorScheme), lineWidth: 7)
+                .padding(5)
+
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    style: StrokeStyle(
+                        lineWidth: 7,
+                        lineCap: .round,
+                        lineJoin: .round
+                    )
+                )
+                .foregroundStyle(MeditationColors.accentPrimary)
+                .shadow(
+                    color: MeditationColors.accentPrimary.opacity(0.18),
+                    radius: 5,
+                    x: 0,
+                    y: 2
+                )
+                .rotationEffect(.degrees(-90))
+                .padding(5)
+                .opacity(progress == 0 ? 0.35 : 1)
+
+            VStack(spacing: 6) {
+                Text(timerText)
+                    .font(timerFont)
+                    .monospacedDigit()
+                    .foregroundColor(MeditationColors.textPrimary)
+
+                Text(centerCaption)
+                    .font(.subheadline)
+                    .foregroundColor(MeditationColors.textSecondary)
+            }
+            .padding(24)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(accessibilityLabel))
+        .accessibilityValue(Text(timerText))
+    }
+}
+
+private struct SessionConfigurationCard<Content: View>: View {
+    let isRegularWidth: Bool
+    let colorScheme: ColorScheme
+    let selectionDescription: String
+    let content: Content
+
+    init(
+        isRegularWidth: Bool,
+        colorScheme: ColorScheme,
+        selectionDescription: String,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.isRegularWidth = isRegularWidth
+        self.colorScheme = colorScheme
+        self.selectionDescription = selectionDescription
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            content
+
+            Text(selectionDescription)
+                .font(.footnote)
+                .foregroundColor(MeditationColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 4)
+                .padding(.top, 2)
+        }
+        .padding(.horizontal, isRegularWidth ? 24 : 18)
+        .padding(.vertical, isRegularWidth ? 20 : 18)
+        .background(
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .fill(MeditationColors.surfacePrimary(for: colorScheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
+        )
+        .accessibilityElement(children: .contain)
+    }
+}
+
+private struct InsightsSheetView<Content: View>: View {
+    @Binding var isPresented: Bool
+    let isRegularWidth: Bool
+    let shouldScroll: Bool
+    let colorScheme: ColorScheme
+    let content: Content
+
+    init(
+        isPresented: Binding<Bool>,
+        isRegularWidth: Bool,
+        shouldScroll: Bool,
+        colorScheme: ColorScheme,
+        @ViewBuilder content: () -> Content
+    ) {
+        _isPresented = isPresented
+        self.isRegularWidth = isRegularWidth
+        self.shouldScroll = shouldScroll
+        self.colorScheme = colorScheme
+        self.content = content()
+    }
+
+    var body: some View {
+        ZStack {
+            MeditationColors.backgroundPrimary(for: colorScheme)
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                header
+
+                if shouldScroll {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        content
+                    }
+                } else {
+                    content
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                }
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .safeAreaPadding(.top, isRegularWidth ? 18 : 12)
+            .safeAreaPadding(.bottom, isRegularWidth ? 12 : 8)
+        }
+    }
+
+    private var header: some View {
+        HStack {
+            Text("Insights")
+                .font(.system(.headline, design: .rounded).weight(.semibold))
+                .foregroundColor(MeditationColors.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+
+            Spacer(minLength: 12)
+
+            Button("Done") {
+                isPresented = false
+            }
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(MeditationColors.surfaceElevated(for: colorScheme))
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(MeditationColors.surfaceElevatedStroke(for: colorScheme), lineWidth: 1)
+            )
+            .buttonStyle(.plain)
+            .foregroundColor(MeditationColors.textPrimary)
+            .accessibilityHint(Text("Closes insights"))
+        }
+        .padding(.horizontal, isRegularWidth ? 26 : 16)
+        .padding(.top, isRegularWidth ? 8 : 6)
+        .padding(.bottom, 8)
     }
 }
 

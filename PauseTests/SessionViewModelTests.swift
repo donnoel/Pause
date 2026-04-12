@@ -161,6 +161,55 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         XCTAssertEqual(viewModel.state, .running)
         XCTAssertNil(viewModel.selectedReflection)
     }
+
+    @MainActor
+    func testSelectingRitualAppliesBreathingStyleAndDurationConfiguration() {
+        let viewModel = SessionViewModel(
+            timerEngine: MockTimerEngine(),
+            chimePlayer: MockChimePlayer(),
+            backgroundAudio: MockBackgroundAudioController()
+        )
+
+        viewModel.selectRitualPreset(.reset)
+
+        XCTAssertEqual(viewModel.selectedRitualPreset, .reset)
+        XCTAssertEqual(viewModel.selectedBreathingStyle, .calmExhale)
+        XCTAssertNil(viewModel.selectedPreset)
+        XCTAssertEqual(viewModel.customDurationMinutes, 3)
+    }
+
+    @MainActor
+    func testSelectingDurationPresetClearsRitualSelectionWithoutChangingBreathingStyle() {
+        let viewModel = SessionViewModel(
+            timerEngine: MockTimerEngine(),
+            chimePlayer: MockChimePlayer(),
+            backgroundAudio: MockBackgroundAudioController()
+        )
+
+        viewModel.selectRitualPreset(.focus)
+        viewModel.selectPreset(.ten)
+
+        XCTAssertNil(viewModel.selectedRitualPreset)
+        XCTAssertEqual(viewModel.selectedPreset, .ten)
+        XCTAssertEqual(viewModel.selectedBreathingStyle, .equalBreath)
+    }
+
+    @MainActor
+    func testCustomDurationMatchingPresetSelectsPresetAndClearsRitual() {
+        let viewModel = SessionViewModel(
+            timerEngine: MockTimerEngine(),
+            chimePlayer: MockChimePlayer(),
+            backgroundAudio: MockBackgroundAudioController()
+        )
+
+        viewModel.selectRitualPreset(.focus)
+        viewModel.selectCustomDuration(minutes: 5)
+
+        XCTAssertNil(viewModel.selectedRitualPreset)
+        XCTAssertEqual(viewModel.selectedPreset, .five)
+        XCTAssertEqual(viewModel.customDurationMinutes, 5)
+        XCTAssertEqual(viewModel.state, .idle)
+    }
 }
 
 final class SessionStatsCalculatorTests: XCTestCase {
