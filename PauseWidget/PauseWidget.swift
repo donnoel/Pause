@@ -7,6 +7,8 @@ struct PauseLockScreenEntry: TimelineEntry {
     let date: Date
     let isActive: Bool
     let endDate: Date?
+
+    var isReady: Bool { !isActive }
 }
 
 // MARK: - Shared session store for widget
@@ -91,7 +93,7 @@ struct PauseLockScreenProvider: TimelineProvider {
             endDate = end
             policy = .after(end)
         } else {
-            // Session finished or not running – always show Stillness
+            // Session finished or not running – show a ready state.
             isActive = false
             endDate = nil
             policy = .never
@@ -110,31 +112,88 @@ struct PauseLockScreenProvider: TimelineProvider {
 // MARK: - View
 
 struct PauseLockScreenWidgetView: View {
+    @Environment(\.widgetFamily) private var family
+
     var entry: PauseLockScreenEntry
 
     var body: some View {
-        ZStack(alignment: .center) {
-            // Circular ring to visually match other accessory circular widgets
+        switch family {
+        case .accessoryRectangular:
+            rectangularView
+        case .accessoryInline:
+            inlineView
+        default:
+            circularView
+        }
+    }
+
+    private var circularView: some View {
+        ZStack {
             Circle()
-                .stroke(.secondary.opacity(0.35), lineWidth: 3)
+                .stroke(Color.secondary.opacity(0.35), lineWidth: 3)
+
             if entry.isActive, let end = entry.endDate {
-                // Compact timer for circular widget
                 Text(timerInterval: entry.date...end, countsDown: true)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
-                Text("Pause")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                VStack(spacing: 2) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                    Text("Ready")
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .lineLimit(1)
+                }
             }
         }
+        .widgetAccentable()
+    }
+
+    private var rectangularView: some View {
+        HStack(alignment: .center, spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(Color.secondary.opacity(0.16))
+                Image(systemName: entry.isActive ? "timer" : "play.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.primary.opacity(0.9))
+            }
+            .frame(width: 30, height: 30)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.isActive ? "Session in progress" : "Ready to begin")
+                    .font(.system(.caption, design: .rounded).weight(.semibold))
+                    .lineLimit(1)
+
+                if entry.isActive, let end = entry.endDate {
+                    Text(timerInterval: entry.date...end, countsDown: true)
+                        .font(.system(.title3, design: .rounded).weight(.semibold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                } else {
+                    Text("Tap to open Pause")
+                        .font(.system(.caption2, design: .rounded))
+                        .foregroundStyle(Color.secondary)
+                        .lineLimit(1)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var inlineView: some View {
+        Group {
+            if entry.isActive, let end = entry.endDate {
+                Text(timerInterval: entry.date...end, countsDown: true)
+            } else {
+                Text("Pause • Ready")
+            }
+        }
+        .font(.system(.caption, design: .rounded).weight(.semibold))
     }
 }
 
@@ -149,9 +208,8 @@ struct PauseLockScreenWidget: Widget {
             PauseLockScreenWidgetView(entry: entry)
                 .containerBackground(.clear, for: .widget)
         }
-        .configurationDisplayName("Pause Timer")
-        .description("Shows your meditation countdown on the Lock Screen.")
-        .supportedFamilies([.accessoryCircular])
+        .configurationDisplayName("Pause")
+        .description("Quickly check remaining time or jump back in when ready.")
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
-

@@ -1,15 +1,20 @@
 import Foundation
 import Combine
 
+@MainActor
 final class SessionViewModel: ObservableObject {
     // Published state for the view
     @Published private(set) var state: SessionState = .idle
     @Published private(set) var remaining: TimeInterval = 0
     @Published private(set) var total: TimeInterval = 0
     @Published private(set) var selectedPreset: SessionDurationPreset? = .five
+    @Published private(set) var selectedBreathingStyle: BreathingStyle = .quietTimer
+    @Published private(set) var selectedRitualPreset: RitualPreset?
+    @Published private(set) var selectedReflection: SessionReflection?
     @Published var isCustomDurationSheetPresented: Bool = false
     @Published private(set) var customDurationMinutes: Int = 5
     @Published private(set) var statsSummary: SessionStatsSummary = .empty
+    @Published private(set) var activeSessionBreathingStyle: BreathingStyle?
 
     private let timerEngine: MeditationTimerEngineProtocol
     private let chimePlayer: AudioChimePlaying
@@ -34,22 +39,28 @@ final class SessionViewModel: ObservableObject {
 
     init(timerEngine: MeditationTimerEngineProtocol,
          chimePlayer: AudioChimePlaying,
-         backgroundAudio: BackgroundAudioControlling = BackgroundAudioManager.shared) {
+         backgroundAudio: BackgroundAudioControlling) {
         self.timerEngine = timerEngine
         self.chimePlayer = chimePlayer
         self.backgroundAudio = backgroundAudio
 
         timerEngine.onTick = { [weak self] remaining in
-            guard let self = self else { return }
-            self.remaining = max(remaining, 0)
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.remaining = max(remaining, 0)
+            }
         }
 
         timerEngine.onHalfway = { [weak self] in
-            self?.chimePlayer.play(chimeType: .halfway)
+            Task { @MainActor [weak self] in
+                self?.chimePlayer.play(chimeType: .halfway)
+            }
         }
 
         timerEngine.onCompleted = { [weak self] in
-            self?.handleCompletion()
+            Task { @MainActor [weak self] in
+                self?.handleCompletion()
+            }
         }
 
         restoreActiveSessionIfNeeded()
@@ -62,11 +73,27 @@ final class SessionViewModel: ObservableObject {
         SessionDurationPreset.allCases
     }
 
+    var ritualPresets: [RitualPreset] {
+        RitualPreset.allCases
+    }
+
+    var breathingStyles: [BreathingStyle] {
+        BreathingStyle.allCases
+    }
+
+    var reflectionOptions: [SessionReflection] {
+        SessionReflection.allCases
+    }
+
     var selectedDuration: TimeInterval {
         if let preset = selectedPreset {
             return preset.rawValue
         }
         return TimeInterval(customDurationMinutes * 60)
+    }
+
+    var breathingStyleForCurrentSession: BreathingStyle {
+        activeSessionBreathingStyle ?? selectedBreathingStyle
     }
 
     var completedSessionDates: Set<DateComponents> {
@@ -113,7 +140,27 @@ final class SessionViewModel: ObservableObject {
     }
 
     func selectPreset(_ preset: SessionDurationPreset) {
+        guard canEditConfiguration else { return }
         selectedPreset = preset
+        selectedRitualPreset = nil
+    }
+
+    func selectBreathingStyle(_ style: BreathingStyle) {
+        guard canEditConfiguration else { return }
+        selectedBreathingStyle = style
+        selectedRitualPreset = nil
+    }
+
+    func selectRitualPreset(_ ritual: RitualPreset) {
+        guard canEditConfiguration else { return }
+        selectedRitualPreset = ritual
+        selectedBreathingStyle = ritual.breathingStyle
+        applyDurationSelection(minutes: ritual.durationMinutes)
+    }
+
+    func selectReflection(_ reflection: SessionReflection) {
+        guard state == .completed else { return }
+        selectedReflection = reflection
     }
 
     func startPreset(_ preset: SessionDurationPreset) {
@@ -123,9 +170,9 @@ final class SessionViewModel: ObservableObject {
     }
 
     func selectCustomDuration(minutes: Int) {
-        // Clamp to at least 1 minute to avoid weirdness.
-        customDurationMinutes = max(1, minutes)
-        selectedPreset = nil
+        guard canEditConfiguration else { return }
+        applyDurationSelection(minutes: minutes)
+        selectedRitualPreset = nil
     }
 
     func startCustomDuration(minutes: Int) {
@@ -156,6 +203,8 @@ final class SessionViewModel: ObservableObject {
         state = .idle
         remaining = 0
         total = 0
+        selectedReflection = nil
+        activeSessionBreathingStyle = nil
         sessionStartDate = nil
         backgroundAudio.stopKeepingAlive()
         PauseSessionStore.clear()
@@ -194,6 +243,7 @@ final class SessionViewModel: ObservableObject {
         total = totalInterval
         remaining = remainingInterval
         state = .running
+        activeSessionBreathingStyle = selectedBreathingStyle
         sessionStartDate = info.startDate
 
         backgroundAudio.startKeepingAlive()
@@ -208,6 +258,8 @@ final class SessionViewModel: ObservableObject {
         total = duration
         remaining = duration
         state = .running
+        selectedReflection = nil
+        activeSessionBreathingStyle = selectedBreathingStyle
 
         let startTime = Date()
         sessionStartDate = startTime
@@ -226,9 +278,25 @@ final class SessionViewModel: ObservableObject {
         timerEngine.start(duration: duration)
     }
 
+    private func applyDurationSelection(minutes: Int) {
+        let clampedMinutes = max(1, minutes)
+        customDurationMinutes = clampedMinutes
+
+        if let matchingPreset = presets.first(where: { $0.minutes == clampedMinutes }) {
+            selectedPreset = matchingPreset
+        } else {
+            selectedPreset = nil
+        }
+    }
+
+    private var canEditConfiguration: Bool {
+        state == .idle || state == .completed
+    }
+
     private func handleCompletion() {
         state = .completed
         remaining = 0
+        selectedReflection = nil
 
         // End-of-session bell
         chimePlayer.play(chimeType: .end)
@@ -243,6 +311,7 @@ final class SessionViewModel: ObservableObject {
             )
         }
 
+        activeSessionBreathingStyle = nil
         sessionStartDate = nil
         PauseSessionStore.clear()
         refreshStats()

@@ -14,14 +14,19 @@ Project-specific guidance for contributors working in this repository.
 - Session domain models/view model: `Pause/ViewModels/SessionModels.swift`, `Pause/ViewModels/SessionViewModel.swift`
 - Timer/audio/services: `Pause/Componets/MeditationTimerEngine.swift`, `Pause/Componets/AudioChimePlayer.swift`, `Pause/Componets/BackgroundAudioManager.swift`
 - Shared persistence for app/widget: `Pause/Componets/PauseSessionStore.swift`
+- Widget surface: `PauseWidget/PauseWidget.swift` (accessory circular/rectangular/inline)
 
 ## Project constraints
 - Keep timer behavior deterministic: session state must move cleanly across `idle/running/paused/completed`.
 - Never regress lock-screen/background timing behavior.
 - Maintain widget compatibility when changing anything in `PauseSessionStore`.
+- Preserve app-group compatibility (`group.dn.pause`) and shared key usage (`currentSession`) for app/widget countdown sync.
 - Additions to persistence must be backward compatible with existing stored data.
 - Preserve Insights history sync behavior across devices (iCloud KVS + local app-group storage fallback).
 - Keep UI logic in SwiftUI views and business/state logic in view models/services/stores.
+- Preserve configuration semantics: duration/ritual/breathing selections configure the next session and do not auto-start.
+- Keep active-session configuration distinct from editable idle/completed configuration state.
+- Live Activity is not currently shipped; do not reintroduce template ActivityKit scaffolding without full app-side lifecycle wiring.
 
 ## Build and test commands
 Use these commands before handing off changes:

@@ -30,6 +30,139 @@ final class MockTimerEngine: MeditationTimerEngineProtocol {
     }
 }
 
+final class MockChimePlayer: AudioChimePlaying {
+    private(set) var playedChimes: [ChimeType] = []
+
+    func play(chimeType: ChimeType) {
+        playedChimes.append(chimeType)
+    }
+}
+
+final class MockBackgroundAudioController: BackgroundAudioControlling {
+    private(set) var startCount: Int = 0
+    private(set) var stopCount: Int = 0
+
+    func startKeepingAlive() {
+        startCount += 1
+    }
+
+    func stopKeepingAlive() {
+        stopCount += 1
+    }
+}
+
+final class SessionViewModelConfigurationTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        PauseSessionStore.clear()
+    }
+
+    override func tearDown() {
+        PauseSessionStore.clear()
+        super.tearDown()
+    }
+
+    @MainActor
+    func testRunningSessionIgnoresConfigurationMutations() {
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background
+        )
+
+        viewModel.selectPreset(.five)
+        viewModel.selectBreathingStyle(.calmExhale)
+        viewModel.startSelectedSession()
+
+        viewModel.selectPreset(.ten)
+        viewModel.selectBreathingStyle(.equalBreath)
+        viewModel.selectCustomDuration(minutes: 3)
+        viewModel.selectRitualPreset(.focus)
+
+        XCTAssertEqual(viewModel.selectedPreset, .five)
+        XCTAssertEqual(viewModel.selectedBreathingStyle, .calmExhale)
+        XCTAssertNil(viewModel.selectedRitualPreset)
+        XCTAssertEqual(viewModel.breathingStyleForCurrentSession, .calmExhale)
+    }
+
+    @MainActor
+    func testCancelClearsActiveSessionBreathingStyle() {
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background
+        )
+
+        viewModel.selectBreathingStyle(.boxBreath)
+        viewModel.startSelectedSession()
+        XCTAssertEqual(viewModel.breathingStyleForCurrentSession, .boxBreath)
+
+        viewModel.cancel()
+
+        XCTAssertEqual(viewModel.state, .idle)
+        XCTAssertNil(viewModel.activeSessionBreathingStyle)
+        XCTAssertEqual(viewModel.breathingStyleForCurrentSession, .boxBreath)
+    }
+
+    @MainActor
+    func testReflectionSelectionIgnoredOutsideCompletedState() {
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background
+        )
+
+        viewModel.selectReflection(.calm)
+        XCTAssertNil(viewModel.selectedReflection)
+
+        viewModel.startSelectedSession()
+        viewModel.selectReflection(.okay)
+        XCTAssertNil(viewModel.selectedReflection)
+    }
+
+    @MainActor
+    func testCompletedSessionSupportsReflectionAndStartClearsIt() {
+        PauseSessionStore.clear()
+        let now = Date()
+        PauseSessionStore.save(
+            PauseSessionInfo(
+                isActive: true,
+                startDate: now.addingTimeInterval(-120),
+                endDate: now.addingTimeInterval(-60)
+            )
+        )
+
+        defer { PauseSessionStore.clear() }
+
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background
+        )
+
+        XCTAssertEqual(viewModel.state, .completed)
+
+        viewModel.selectReflection(.restless)
+        XCTAssertEqual(viewModel.selectedReflection, .restless)
+
+        viewModel.startSelectedSession()
+        XCTAssertEqual(viewModel.state, .running)
+        XCTAssertNil(viewModel.selectedReflection)
+    }
+}
+
 final class SessionStatsCalculatorTests: XCTestCase {
     private var calendar: Calendar!
 
@@ -156,5 +289,26 @@ final class CompletedSessionRecordMergerTests: XCTestCase {
         XCTAssertEqual(normalized.count, 3)
         XCTAssertEqual(normalized.first?.startDate, records[2].startDate)
         XCTAssertEqual(normalized.last?.startDate, records[4].startDate)
+    }
+}
+
+final class RitualPresetTests: XCTestCase {
+    func testRitualPresetMappingsMatchExpectedConfiguration() {
+        XCTAssertEqual(RitualPreset.reset.durationMinutes, 3)
+        XCTAssertEqual(RitualPreset.reset.breathingStyle, .calmExhale)
+
+        XCTAssertEqual(RitualPreset.focus.durationMinutes, 5)
+        XCTAssertEqual(RitualPreset.focus.breathingStyle, .equalBreath)
+
+        XCTAssertEqual(RitualPreset.unwind.durationMinutes, 10)
+        XCTAssertEqual(RitualPreset.unwind.breathingStyle, .quietTimer)
+
+        XCTAssertEqual(RitualPreset.sleepWindDown.durationMinutes, 15)
+        XCTAssertEqual(RitualPreset.sleepWindDown.breathingStyle, .calmExhale)
+    }
+
+    func testQuietTimerHasNoGuidedPhaseCue() {
+        XCTAssertNil(BreathingStyle.quietTimer.phaseCue(elapsed: 0))
+        XCTAssertNil(BreathingStyle.quietTimer.phaseCue(elapsed: 30))
     }
 }

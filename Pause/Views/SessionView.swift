@@ -56,6 +56,10 @@ struct SessionView: View {
                 configurationRegion
             }
 
+            if viewModel.state == .completed {
+                reflectionRegion
+            }
+
             actionRegion
         }
         .padding(.horizontal, horizontalSizeClass == .regular ? 32 : 20)
@@ -140,7 +144,20 @@ struct SessionView: View {
     }
 
     private var configurationRegion: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Ritual")
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(MeditationColors.textPrimary)
+
+            ViewThatFits(in: .horizontal) {
+                ritualRow
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    ritualRow
+                        .padding(.vertical, 2)
+                }
+            }
+
             Text("Duration")
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(MeditationColors.textPrimary)
@@ -150,6 +167,19 @@ struct SessionView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     durationRow
+                        .padding(.vertical, 2)
+                }
+            }
+
+            Text("Breathing Style")
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(MeditationColors.textPrimary)
+
+            ViewThatFits(in: .horizontal) {
+                breathingStyleRow
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    breathingStyleRow
                         .padding(.vertical, 2)
                 }
             }
@@ -204,6 +234,43 @@ struct SessionView: View {
                 .accessibilityLabel(Text("Prepare a new session"))
             }
         }
+    }
+
+    private var reflectionRegion: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Reflection")
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(MeditationColors.textPrimary)
+
+            Text("How do you feel right now?")
+                .font(.footnote)
+                .foregroundColor(MeditationColors.textSecondary)
+
+            ViewThatFits(in: .horizontal) {
+                reflectionRow
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    reflectionRow
+                        .padding(.vertical, 2)
+                }
+            }
+
+            if let selectedReflection = viewModel.selectedReflection {
+                Text("Noted: \(selectedReflection.title).")
+                    .font(.footnote)
+                    .foregroundColor(MeditationColors.textSecondary)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(MeditationColors.surfacePrimary(for: colorScheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
+        )
+        .accessibilityElement(children: .contain)
     }
 
     // MARK: - Pieces
@@ -298,6 +365,48 @@ struct SessionView: View {
         }
     }
 
+    private var ritualRow: some View {
+        HStack(spacing: 8) {
+            ForEach(viewModel.ritualPresets) { ritual in
+                DurationPill(
+                    title: ritual.title,
+                    isSelected: viewModel.selectedRitualPreset == ritual
+                ) {
+                    viewModel.selectRitualPreset(ritual)
+                }
+                .accessibilityHint(Text("Selects \(ritual.title) ritual preset."))
+            }
+        }
+    }
+
+    private var breathingStyleRow: some View {
+        HStack(spacing: 8) {
+            ForEach(viewModel.breathingStyles) { style in
+                DurationPill(
+                    title: style.title,
+                    isSelected: viewModel.selectedBreathingStyle == style
+                ) {
+                    viewModel.selectBreathingStyle(style)
+                }
+                .accessibilityHint(Text("Selects \(style.title) breathing style."))
+            }
+        }
+    }
+
+    private var reflectionRow: some View {
+        HStack(spacing: 8) {
+            ForEach(viewModel.reflectionOptions) { reflection in
+                DurationPill(
+                    title: reflection.title,
+                    isSelected: viewModel.selectedReflection == reflection
+                ) {
+                    viewModel.selectReflection(reflection)
+                }
+                .accessibilityHint(Text("Records \(reflection.title.lowercased()) reflection."))
+            }
+        }
+    }
+
     // MARK: - Text and State
 
     private var contextLine: String {
@@ -353,10 +462,14 @@ struct SessionView: View {
     }
 
     private var selectionDescription: String {
-        if viewModel.selectedPreset == nil {
-            return "Custom duration: \(viewModel.customDurationMinutes) min selected."
+        if let selectedRitual = viewModel.selectedRitualPreset {
+            return "Ritual: \(selectedRitual.title) • \(selectedDurationLabel) • \(selectedBreathingStyleLabel)."
         }
-        return "Selected: \(selectedDurationLabel)."
+
+        if viewModel.selectedPreset == nil {
+            return "Custom duration: \(viewModel.customDurationMinutes) min. Style: \(selectedBreathingStyleLabel)."
+        }
+        return "Selected: \(selectedDurationLabel) with \(selectedBreathingStyleLabel)."
     }
 
     private var selectedDurationLabel: String {
@@ -366,21 +479,16 @@ struct SessionView: View {
         return "\(viewModel.customDurationMinutes) min"
     }
 
-    private var breathingCue: String {
-        guard viewModel.total > 0 else { return "Breathe" }
-        let elapsed = max(0, viewModel.total - viewModel.remaining)
-        let phaseSecond = Int(elapsed.rounded(.down)) % 12
+    private var selectedBreathingStyleLabel: String {
+        viewModel.selectedBreathingStyle.title
+    }
 
-        switch phaseSecond {
-        case 0...3:
-            return "Inhale"
-        case 4...5:
-            return "Hold"
-        case 6...9:
-            return "Exhale"
-        default:
-            return "Hold"
+    private var breathingCue: String? {
+        guard viewModel.total > 0 else {
+            return viewModel.breathingStyleForCurrentSession.phaseCue(elapsed: 0)
         }
+        let elapsed = max(0, viewModel.total - viewModel.remaining)
+        return viewModel.breathingStyleForCurrentSession.phaseCue(elapsed: elapsed)
     }
 
     private var heroDiameter: CGFloat {
@@ -534,41 +642,23 @@ struct SessionView: View {
 
     private var statsSheet: some View {
         NavigationStack {
-            List {
-                Section("Calendar") {
-                    MultiDatePicker(
-                        "Completed sessions",
-                        selection: .constant(viewModel.completedSessionDates)
-                    )
-                    .labelsHidden()
-                    .allowsHitTesting(false)
-                    .accessibilityLabel(Text("Calendar of completed sessions"))
+            ZStack {
+                MeditationColors.backgroundPrimary(for: colorScheme)
+                    .ignoresSafeArea()
 
-                    Text("Only fully completed sessions are recorded.")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                }
-
-                Section("Details") {
-                    statsRow(
-                        title: "Sessions completed",
-                        value: "\(viewModel.completedSessionCount)"
-                    )
-                    statsRow(
-                        title: "Usually meditate",
-                        value: viewModel.usualMeditationTimeDescription
-                    )
-                    statsRow(
-                        title: "Last meditation",
-                        value: viewModel.lastMeditationDescription
-                    )
-                    statsRow(
-                        title: "Average session length",
-                        value: viewModel.averageSessionLengthDescription
-                    )
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        insightsHeaderCard
+                        insightsStatGrid
+                        insightsCalendarCard
+                    }
+                    .padding(.horizontal, horizontalSizeClass == .regular ? 28 : 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
+                    .frame(maxWidth: maxContentWidth)
+                    .frame(maxWidth: .infinity, alignment: .top)
                 }
             }
-            .listStyle(.insetGrouped)
             .navigationTitle("Insights")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -581,19 +671,112 @@ struct SessionView: View {
         }
     }
 
+    private var insightsHeaderCard: some View {
+        insightCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Your rhythm")
+                    .font(.system(.title3, design: .rounded).weight(.semibold))
+                    .foregroundColor(MeditationColors.textPrimary)
+
+                Text(insightsHeaderDescription)
+                    .font(.body)
+                    .foregroundColor(MeditationColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var insightsStatGrid: some View {
+        let minimumWidth: CGFloat = horizontalSizeClass == .regular ? 240 : 160
+        let columns = [GridItem(.adaptive(minimum: minimumWidth), spacing: 12, alignment: .top)]
+
+        return LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
+            statsCard(
+                title: "Sessions completed",
+                value: "\(viewModel.completedSessionCount)"
+            )
+            statsCard(
+                title: "Usually meditate",
+                value: viewModel.usualMeditationTimeDescription
+            )
+            statsCard(
+                title: "Last meditation",
+                value: viewModel.lastMeditationDescription
+            )
+            statsCard(
+                title: "Average session length",
+                value: viewModel.averageSessionLengthDescription
+            )
+        }
+    }
+
+    private var insightsCalendarCard: some View {
+        insightCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Completed sessions")
+                    .font(.headline.weight(.semibold))
+                    .foregroundColor(MeditationColors.textPrimary)
+
+                MultiDatePicker(
+                    "Completed sessions",
+                    selection: .constant(viewModel.completedSessionDates)
+                )
+                .labelsHidden()
+                .allowsHitTesting(false)
+                .accessibilityLabel(Text("Calendar of completed sessions"))
+
+                Text(calendarCaption)
+                    .font(.footnote)
+                    .foregroundColor(MeditationColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
     // MARK: - Formatting
 
-    @ViewBuilder
-    private func statsRow(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.subheadline)
-                .foregroundColor(MeditationColors.textSecondary)
-            Text(value)
-                .font(.body.weight(.medium))
-                .foregroundColor(MeditationColors.textPrimary)
+    private func statsCard(title: String, value: String) -> some View {
+        insightCard {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundColor(MeditationColors.textSecondary)
+                Text(value)
+                    .font(.title3.weight(.semibold))
+                    .foregroundColor(MeditationColors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func insightCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(MeditationColors.surfacePrimary(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
+            )
+    }
+
+    private var insightsHeaderDescription: String {
+        if viewModel.completedSessionCount == 0 {
+            return "No completed sessions yet. A short reset session is a good place to start."
+        }
+        return "A calm summary of your recent meditation history."
+    }
+
+    private var calendarCaption: String {
+        if viewModel.completedSessionCount == 0 {
+            return "Complete your first session to begin filling this calendar."
+        }
+        return "Only fully completed sessions are recorded."
     }
 
     private func formattedTime(_ interval: TimeInterval) -> String {
@@ -624,6 +807,7 @@ extension SessionViewModel {
     convenience init() {
         let engine = MeditationTimerEngine()
         let chimePlayer = SystemAudioChimePlayer()
-        self.init(timerEngine: engine, chimePlayer: chimePlayer)
+        let backgroundAudio: BackgroundAudioControlling = BackgroundAudioManager.shared
+        self.init(timerEngine: engine, chimePlayer: chimePlayer, backgroundAudio: backgroundAudio)
     }
 }

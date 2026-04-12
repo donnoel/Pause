@@ -28,6 +28,133 @@ enum SessionDurationPreset: TimeInterval, CaseIterable, Identifiable {
     }
 }
 
+/// Breathing style selected before a session starts.
+enum BreathingStyle: String, CaseIterable, Identifiable {
+    case quietTimer
+    case boxBreath
+    case calmExhale
+    case equalBreath
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .quietTimer:
+            return "Quiet Timer"
+        case .boxBreath:
+            return "Box Breath"
+        case .calmExhale:
+            return "Calm Exhale"
+        case .equalBreath:
+            return "Equal Breath"
+        }
+    }
+
+    /// Lightweight phase cue model. Timing can be refined later.
+    func phaseCue(elapsed: TimeInterval) -> String? {
+        let elapsedSecond = max(0, Int(elapsed.rounded(.down)))
+
+        switch self {
+        case .quietTimer:
+            return nil
+        case .boxBreath:
+            switch elapsedSecond % 16 {
+            case 0...3:
+                return "Inhale"
+            case 4...7:
+                return "Hold"
+            case 8...11:
+                return "Exhale"
+            default:
+                return "Hold"
+            }
+        case .calmExhale:
+            switch elapsedSecond % 10 {
+            case 0...3:
+                return "Inhale"
+            default:
+                return "Exhale"
+            }
+        case .equalBreath:
+            switch elapsedSecond % 8 {
+            case 0...3:
+                return "Inhale"
+            default:
+                return "Exhale"
+            }
+        }
+    }
+}
+
+/// Optional named ritual that maps to duration plus breathing style.
+enum RitualPreset: String, CaseIterable, Identifiable {
+    case reset
+    case focus
+    case unwind
+    case sleepWindDown
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .reset:
+            return "Reset"
+        case .focus:
+            return "Focus"
+        case .unwind:
+            return "Unwind"
+        case .sleepWindDown:
+            return "Sleep Wind Down"
+        }
+    }
+
+    var durationMinutes: Int {
+        switch self {
+        case .reset:
+            return 3
+        case .focus:
+            return 5
+        case .unwind:
+            return 10
+        case .sleepWindDown:
+            return 15
+        }
+    }
+
+    var breathingStyle: BreathingStyle {
+        switch self {
+        case .reset:
+            return .calmExhale
+        case .focus:
+            return .equalBreath
+        case .unwind:
+            return .quietTimer
+        case .sleepWindDown:
+            return .calmExhale
+        }
+    }
+}
+
+/// Optional one-tap reflection after a completed session.
+enum SessionReflection: String, CaseIterable, Identifiable {
+    case calm
+    case okay
+    case restless
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .calm:
+            return "Calm"
+        case .okay:
+            return "Okay"
+        case .restless:
+            return "Restless"
+        }
+    }
+}
+
 /// Persisted record for a fully completed meditation session.
 struct CompletedMeditationSessionRecord: Codable, Equatable {
     let startDate: Date
