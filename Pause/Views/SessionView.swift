@@ -79,6 +79,10 @@ struct SessionView: View {
         horizontalSizeClass == .regular
     }
 
+    private var isRegularPortrait: Bool {
+        isRegularWidth && verticalSizeClass != .compact
+    }
+
     private var maxContentWidth: CGFloat {
         isRegularWidth ? 900 : 760
     }
@@ -150,6 +154,7 @@ struct SessionView: View {
                     .transition(.opacity)
             }
         }
+        .padding(.top, isRegularPortrait ? 48 : 0)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: viewModel.state)
     }
 
