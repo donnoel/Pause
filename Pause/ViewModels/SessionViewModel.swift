@@ -246,7 +246,6 @@ final class SessionViewModel: ObservableObject {
         activeSessionBreathingStyle = selectedBreathingStyle
         sessionStartDate = info.startDate
 
-        backgroundAudio.startKeepingAlive()
         timerEngine.start(duration: remainingInterval)
     }
 
@@ -272,7 +271,6 @@ final class SessionViewModel: ObservableObject {
             )
         )
 
-        // Keep the app alive when the screen locks.
         backgroundAudio.startKeepingAlive()
 
         timerEngine.start(duration: duration)
@@ -316,9 +314,8 @@ final class SessionViewModel: ObservableObject {
         PauseSessionStore.clear()
         refreshStats()
 
-        // Allow the chime to ring out before stopping background keep-alive.
-        // We only stop if we're still in the completed state to avoid
-        // interfering with a quickly restarted session.
+        // Keep the delayed stop so foreground chime playback is not interrupted
+        // by a quickly restarted session.
         let delay: TimeInterval = 3
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self, self.state == .completed else { return }

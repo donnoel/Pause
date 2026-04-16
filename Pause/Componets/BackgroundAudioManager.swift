@@ -1,5 +1,4 @@
 import Foundation
-import AVFoundation
 
 /// Simple abstraction so we can stub this out in tests if needed.
 protocol BackgroundAudioControlling {
@@ -7,91 +6,15 @@ protocol BackgroundAudioControlling {
     func stopKeepingAlive()
 }
 
-/// Keeps the app alive while a session is running by playing a silent audio stream.
-/// Uses the "audio" background mode so timers & chimes keep working when the screen is locked.
+/// Compatibility shim kept so session flows can call into a background-audio controller
+/// without relying on unsupported silent playback.
 final class BackgroundAudioManager: BackgroundAudioControlling {
 
     static let shared = BackgroundAudioManager()
 
-    private let engine = AVAudioEngine()
-    private var sourceNode: AVAudioSourceNode?
-
-    private var isConfigured = false
-
     private init() {}
 
-    // MARK: - Public API
+    func startKeepingAlive() {}
 
-    /// Call when a meditation session starts.
-    func startKeepingAlive() {
-        configureIfNeeded()
-        ensureEngineRunning()
-    }
-
-    /// Call when a meditation session ends or is cancelled.
-    func stopKeepingAlive() {
-        guard isConfigured else { return }
-
-        if engine.isRunning {
-            engine.stop()
-        }
-
-        // Intentionally do not deactivate the shared AVAudioSession here.
-        // Deactivating the session can cut off any ongoing playback (like
-        // the final chime). The system can deactivate the session when
-        // appropriate once no audio is playing.
-    }
-
-    // MARK: - Private
-
-    private func configureIfNeeded() {
-        guard !isConfigured else { return }
-
-        let session = AVAudioSession.sharedInstance()
-
-        do {
-            // playback: allows background audio
-            // mixWithOthers: don't stomp on Spotify / Apple Music
-            try session.setCategory(.playback, options: [.mixWithOthers])
-            try session.setActive(true)
-        } catch {
-            #if DEBUG
-            print("⚠️ BackgroundAudioManager: Failed to configure AVAudioSession: \(error)")
-            #endif
-        }
-
-        let outputFormat = engine.outputNode.outputFormat(forBus: 0)
-
-        // Source node that outputs silence.
-        let source = AVAudioSourceNode { _, _, _, audioBufferList -> OSStatus in
-            let ablPointer = UnsafeMutableAudioBufferListPointer(audioBufferList)
-            for bufferIndex in 0..<ablPointer.count {
-                let buffer = ablPointer[bufferIndex]
-                if let mData = buffer.mData {
-                    memset(mData, 0, Int(buffer.mDataByteSize))
-                }
-            }
-            // 0 == noErr
-            return 0
-        }
-
-        engine.attach(source)
-        engine.connect(source, to: engine.mainMixerNode, format: outputFormat)
-
-        sourceNode = source
-        isConfigured = true
-
-    }
-
-    private func ensureEngineRunning() {
-        guard !engine.isRunning else { return }
-
-        do {
-            try engine.start()
-        } catch {
-            #if DEBUG
-            print("⚠️ BackgroundAudioManager: Failed to start AVAudioEngine: \(error)")
-            #endif
-        }
-    }
+    func stopKeepingAlive() {}
 }

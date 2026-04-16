@@ -46,7 +46,8 @@ A lightweight AudioChimePlayer wraps AVAudioPlayer to deliver soft, unobtrusive 
 	•	optional interval chimes
 	•	session end
 
-The audio system includes graceful error handling for missing or unsupported audio files and works beautifully in the background.
+The audio system includes graceful error handling for missing or unsupported audio files during normal app use.
+The app does not use background audio keep-alive; active-session timing is restored from persisted session dates when the app returns to the foreground.
 
 📊 Session Stats
 
@@ -99,7 +100,7 @@ PauseApp.swift
 │   ├── MeditationDesignSystem.swift# Shared colors/styles
 │   ├── MeditationTimerEngine.swift # Core timing logic with Combine
 │   ├── PauseSessionStore.swift     # Shared model for widgets & app
-│   └── BackgroundAudioManager.swift# Background keep-alive support
+│   └── BackgroundAudioManager.swift# Background-audio compatibility shim
 └── Views/
     └── SessionView.swift           # Main session + insights surfaces
 
@@ -107,7 +108,7 @@ The codebase avoids unnecessary complexity, making it approachable and ideal for
 
 ⌚ Background-Safe Timer Handling
 
-MeditationTimerEngine uses Combine to keep accurate timing even when the app goes to the background, and hands off cleanly to PauseSessionStore for state persistence.
+MeditationTimerEngine uses Combine while the app is active, and PauseSessionStore preserves session dates so timing and widgets restore cleanly after backgrounding.
 
 ⸻
 
@@ -147,7 +148,7 @@ The heart of Pause. Tracks:
 	•	session duration
 	•	state transitions (idle → running → paused → completed)
 	•	timer lifecycle
-	•	background audio keep-alive
+	•	persisted session restoration for background-safe timing
 
 MeditationTimerEngine
 
