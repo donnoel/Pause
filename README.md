@@ -80,6 +80,10 @@ The included Pause widget keeps session state glanceable and calm on accessory s
 	•	shared state via PauseSessionStore (app-group compatible)
 	•	WidgetKit timeline reload support
 
+⚙️ Settings App Version Row
+
+In iOS/iPadOS Settings (`Settings > Apps > Pause`), the app shows a single non-editable `Version` row formatted as `CFBundleShortVersionString (CFBundleVersion)`, sourced from the app bundle at launch.
+
 🛰 Live Activity Status
 
 Pause does not currently ship a Live Activity. Template Live Activity scaffolding was removed until a production-ready ActivityKit lifecycle is implemented in the app target.
