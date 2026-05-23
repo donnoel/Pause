@@ -10,6 +10,7 @@ public protocol MeditationTimerEngineProtocol: AnyObject {
     var total: TimeInterval { get }
 
     func start(duration: TimeInterval)
+    func restore(totalDuration: TimeInterval, remainingDuration: TimeInterval)
     func pause()
     func resume()
     func cancel()
@@ -31,23 +32,50 @@ public final class MeditationTimerEngine: MeditationTimerEngineProtocol {
     public init() {}
 
     public func start(duration: TimeInterval) {
+        configure(totalDuration: duration, remainingDuration: duration)
+    }
+
+    public func restore(totalDuration: TimeInterval, remainingDuration: TimeInterval) {
+        configure(totalDuration: totalDuration, remainingDuration: remainingDuration)
+    }
+
+    public func pause() {
+        guard isRunning else { return }
+        isRunning = false
+    }
+
+    public func resume() {
+        guard !isRunning, timer != nil else { return }
+        isRunning = true
+    }
+
+    public func cancel() {
+        invalidate()
+        remaining = 0
+        total = 0
+    }
+
+    private func configure(totalDuration: TimeInterval, remainingDuration: TimeInterval) {
         invalidate()
 
-        total = max(1, duration)
-        remaining = total
+        total = max(1, totalDuration)
+        remaining = min(max(0, remainingDuration), total)
         halfwayPoint = total / 2
-        hasFiredHalfway = false
-        isRunning = true
+        hasFiredHalfway = (total - remaining) >= halfwayPoint
+        isRunning = remaining > 0
 
-        // initial state
         onTick?(remaining)
+
+        guard remaining > 0 else {
+            complete()
+            return
+        }
 
         let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
             guard self.isRunning else { return }
 
             self.remaining = max(0, self.remaining - 1)
-
             let elapsed = self.total - self.remaining
 
             if !self.hasFiredHalfway && elapsed >= self.halfwayPoint {
@@ -67,22 +95,6 @@ public final class MeditationTimerEngine: MeditationTimerEngineProtocol {
 
         self.timer = timer
         RunLoop.main.add(timer, forMode: .common)
-    }
-
-    public func pause() {
-        guard isRunning else { return }
-        isRunning = false
-    }
-
-    public func resume() {
-        guard !isRunning, timer != nil else { return }
-        isRunning = true
-    }
-
-    public func cancel() {
-        invalidate()
-        remaining = 0
-        total = 0
     }
 
     private func complete() {
