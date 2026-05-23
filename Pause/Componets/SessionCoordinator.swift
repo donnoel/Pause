@@ -7,13 +7,9 @@ final class SessionCoordinator: ObservableObject {
         let timerEngine = MeditationTimerEngine()
         let chimePlayer: AudioChimePlaying = SystemAudioChimePlayer()
         let backgroundAudio: BackgroundAudioControlling = BackgroundAudioManager.shared
-        let notificationScheduler: SessionNotificationScheduling = SessionNotificationScheduler()
-        let viewModel = SessionViewModel(
-            timerEngine: timerEngine,
-            chimePlayer: chimePlayer,
-            backgroundAudio: backgroundAudio,
-            notificationScheduler: notificationScheduler
-        )
+        let viewModel = SessionViewModel(timerEngine: timerEngine,
+                                         chimePlayer: chimePlayer,
+                                         backgroundAudio: backgroundAudio)
         return SessionView(viewModel: viewModel)
     }
 }
