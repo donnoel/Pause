@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import AudioToolbox
 
 /// Types of chimes we support. Right now they both use the same sound,
 /// but this makes it easy to swap them later if you want different bells.
@@ -13,7 +14,8 @@ protocol AudioChimePlaying {
     func play(chimeType: ChimeType)
 }
 
-/// Concrete implementation that plays `chime.mp3` from the main bundle.
+/// Concrete implementation that prefers a bundled `chime.mp3` and falls back
+/// to a built-in system sound if the bundled file is unavailable.
 final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDelegate {
 
     private var audioPlayer: AVAudioPlayer?
@@ -25,18 +27,18 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDe
     /// Master chime volume relative to system volume.
     /// 1.0 = full, 0.0 = silent. 0.25 is a "polite" chime.
     private let chimeVolume: Float = 0.15
+    private let fallbackSystemSoundID: SystemSoundID = 1005
 
     func play(chimeType: ChimeType) {
-        // For now, both halfway + end use the same sound.
-        // You could vary behavior later based on `chimeType` if you want.
         playBell()
     }
 
     private func playBell() {
         guard let url = Bundle.main.url(forResource: fileName, withExtension: fileExtension) else {
             #if DEBUG
-            print("⚠️ SystemAudioChimePlayer: Could not find \(fileName).\(fileExtension) in bundle.")
+            print("⚠️ SystemAudioChimePlayer: Could not find \(fileName).\(fileExtension) in bundle. Falling back to system sound.")
             #endif
+            playFallbackSystemSound()
             return
         }
 
@@ -51,8 +53,9 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDe
             audioPlayer = player
         } catch {
             #if DEBUG
-            print("⚠️ SystemAudioChimePlayer: Failed to play \(fileName).\(fileExtension): \(error)")
+            print("⚠️ SystemAudioChimePlayer: Failed to play \(fileName).\(fileExtension): \(error). Falling back to system sound.")
             #endif
+            playFallbackSystemSound()
         }
     }
 
@@ -60,6 +63,10 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDe
         let session = AVAudioSession.sharedInstance()
         try session.setCategory(.playback, mode: .default, options: [])
         try session.setActive(true, options: [])
+    }
+
+    private func playFallbackSystemSound() {
+        AudioServicesPlaySystemSound(fallbackSystemSoundID)
     }
 
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
