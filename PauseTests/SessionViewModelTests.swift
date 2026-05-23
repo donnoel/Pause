@@ -5,25 +5,27 @@ final class MockTimerEngine: MeditationTimerEngineProtocol {
     var onTick: ((TimeInterval) -> Void)?
     var onHalfway: (() -> Void)?
     var onCompleted: (() -> Void)?
-    
+
     private(set) var isRunning: Bool = false
     private(set) var remaining: TimeInterval = 0
     private(set) var total: TimeInterval = 0
-    
+    private(set) var startCallCount: Int = 0
+
     func start(duration: TimeInterval) {
         total = duration
         remaining = duration
         isRunning = true
+        startCallCount += 1
     }
-    
+
     func pause() {
         isRunning = false
     }
-    
+
     func resume() {
         isRunning = true
     }
-    
+
     func cancel() {
         isRunning = false
         remaining = 0
@@ -209,6 +211,68 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedPreset, .five)
         XCTAssertEqual(viewModel.customDurationMinutes, 5)
         XCTAssertEqual(viewModel.state, .idle)
+    }
+
+    @MainActor
+    func testHandleSceneDidBecomeActiveReconcilesRunningSessionFromStore() {
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background
+        )
+
+        let startDate = Date().addingTimeInterval(-60)
+        let endDate = Date().addingTimeInterval(120)
+        PauseSessionStore.save(
+            PauseSessionInfo(
+                isActive: true,
+                startDate: startDate,
+                endDate: endDate
+            )
+        )
+
+        viewModel.handleSceneDidBecomeActive()
+
+        XCTAssertEqual(viewModel.state, .running)
+        XCTAssertTrue(timer.isRunning)
+        XCTAssertGreaterThan(timer.startCallCount, 0)
+        XCTAssertEqual(viewModel.total, endDate.timeIntervalSince(startDate), accuracy: 0.5)
+        XCTAssertGreaterThan(viewModel.remaining, 0)
+        XCTAssertLessThanOrEqual(viewModel.remaining, endDate.timeIntervalSince(Date()) + 1.0)
+    }
+
+    @MainActor
+    func testHandleSceneDidBecomeActiveCompletesExpiredStoredSession() {
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background
+        )
+
+        let endDate = Date().addingTimeInterval(-5)
+        let startDate = endDate.addingTimeInterval(-180)
+        PauseSessionStore.save(
+            PauseSessionInfo(
+                isActive: true,
+                startDate: startDate,
+                endDate: endDate
+            )
+        )
+
+        viewModel.handleSceneDidBecomeActive()
+
+        XCTAssertEqual(viewModel.state, .completed)
+        XCTAssertEqual(viewModel.remaining, 0)
+        XCTAssertEqual(viewModel.total, 180, accuracy: 0.5)
+        XCTAssertEqual(viewModel.completedSessionCount, 1)
+        XCTAssertFalse(PauseSessionStore.load().isActive)
+        XCTAssertEqual(background.stopCount, 1)
     }
 }
 
