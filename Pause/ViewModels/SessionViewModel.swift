@@ -72,7 +72,7 @@ final class SessionViewModel: ObservableObject {
             }
             .store(in: &lifecycleCancellables)
 
-        restoreActiveSessionIfNeeded()
+        restoreActiveSessionIfNeeded(playCompletionChime: false)
         refreshStats()
     }
 
@@ -226,16 +226,16 @@ final class SessionViewModel: ObservableObject {
 
     func handleSceneDidBecomeActive() {
         guard state != .paused else { return }
-        restoreActiveSessionIfNeeded()
+        restoreActiveSessionIfNeeded(playCompletionChime: true)
     }
 
-    private func restoreActiveSessionIfNeeded() {
+    private func restoreActiveSessionIfNeeded(playCompletionChime: Bool) {
         let info = PauseSessionStore.load()
         guard info.isActive, let end = info.endDate else { return }
 
         let now = Date()
         if now >= end {
-            completeRestoredSession(info, endedAt: end)
+            completeRestoredSession(info, endedAt: end, playCompletionChime: playCompletionChime)
             return
         }
 
@@ -253,7 +253,7 @@ final class SessionViewModel: ObservableObject {
         activeSessionBreathingStyle = activeSessionBreathingStyle ?? selectedBreathingStyle
         sessionStartDate = info.startDate
 
-        timerEngine.start(duration: remainingInterval)
+        timerEngine.restore(totalDuration: totalInterval, remainingDuration: remainingInterval)
     }
 
     // MARK: - Private
@@ -298,7 +298,7 @@ final class SessionViewModel: ObservableObject {
         state == .idle || state == .completed
     }
 
-    private func completeRestoredSession(_ info: PauseSessionInfo, endedAt completionDate: Date) {
+    private func completeRestoredSession(_ info: PauseSessionInfo, endedAt completionDate: Date, playCompletionChime: Bool) {
         timerEngine.cancel()
         state = .completed
         remaining = 0
@@ -307,6 +307,10 @@ final class SessionViewModel: ObservableObject {
         let startedAt = info.startDate ?? completionDate
         let plannedDuration = max(0, completionDate.timeIntervalSince(startedAt))
         total = plannedDuration
+
+        if playCompletionChime {
+            chimePlayer.play(chimeType: .end)
+        }
 
         if plannedDuration > 0, completionDate > startedAt {
             PauseSessionStore.recordCompletedSession(
