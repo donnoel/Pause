@@ -14,7 +14,7 @@ protocol AudioChimePlaying {
 }
 
 /// Concrete implementation that plays `chime.mp3` from the main bundle.
-final class SystemAudioChimePlayer: NSObject, AudioChimePlaying {
+final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDelegate {
 
     private var audioPlayer: AVAudioPlayer?
 
@@ -41,14 +41,43 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying {
         }
 
         do {
+            try configureAudioSession()
+
             let player = try AVAudioPlayer(contentsOf: url)
-            player.volume = chimeVolume      // ⬅️ make the chime quieter
+            player.delegate = self
+            player.volume = chimeVolume
             player.prepareToPlay()
             player.play()
-            audioPlayer = player             // keep a strong reference
+            audioPlayer = player
         } catch {
             #if DEBUG
             print("⚠️ SystemAudioChimePlayer: Failed to play \(fileName).\(fileExtension): \(error)")
+            #endif
+        }
+    }
+
+    private func configureAudioSession() throws {
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playback, mode: .default, options: [])
+        try session.setActive(true, options: [])
+    }
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        audioPlayer = nil
+        deactivateAudioSessionIfPossible()
+    }
+
+    func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+        audioPlayer = nil
+        deactivateAudioSessionIfPossible()
+    }
+
+    private func deactivateAudioSessionIfPossible() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        } catch {
+            #if DEBUG
+            print("⚠️ SystemAudioChimePlayer: Failed to deactivate audio session: \(error)")
             #endif
         }
     }
