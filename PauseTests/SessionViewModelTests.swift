@@ -10,12 +10,24 @@ final class MockTimerEngine: MeditationTimerEngineProtocol {
     private(set) var remaining: TimeInterval = 0
     private(set) var total: TimeInterval = 0
     private(set) var startCallCount: Int = 0
+    private(set) var restoreCallCount: Int = 0
+    private(set) var lastRestoredTotal: TimeInterval = 0
+    private(set) var lastRestoredRemaining: TimeInterval = 0
 
     func start(duration: TimeInterval) {
         total = duration
         remaining = duration
         isRunning = true
         startCallCount += 1
+    }
+
+    func restore(totalDuration: TimeInterval, remainingDuration: TimeInterval) {
+        total = totalDuration
+        remaining = remainingDuration
+        isRunning = remainingDuration > 0
+        restoreCallCount += 1
+        lastRestoredTotal = totalDuration
+        lastRestoredRemaining = remainingDuration
     }
 
     func pause() {
@@ -238,14 +250,17 @@ final class SessionViewModelConfigurationTests: XCTestCase {
 
         XCTAssertEqual(viewModel.state, .running)
         XCTAssertTrue(timer.isRunning)
-        XCTAssertGreaterThan(timer.startCallCount, 0)
+        XCTAssertEqual(timer.restoreCallCount, 1)
+        XCTAssertEqual(timer.lastRestoredTotal, endDate.timeIntervalSince(startDate), accuracy: 0.5)
+        XCTAssertGreaterThan(timer.lastRestoredRemaining, 0)
+        XCTAssertLessThanOrEqual(timer.lastRestoredRemaining, endDate.timeIntervalSince(Date()) + 1.0)
         XCTAssertEqual(viewModel.total, endDate.timeIntervalSince(startDate), accuracy: 0.5)
         XCTAssertGreaterThan(viewModel.remaining, 0)
         XCTAssertLessThanOrEqual(viewModel.remaining, endDate.timeIntervalSince(Date()) + 1.0)
     }
 
     @MainActor
-    func testHandleSceneDidBecomeActiveCompletesExpiredStoredSession() {
+    func testHandleSceneDidBecomeActiveCompletesExpiredStoredSessionAndPlaysEndChime() {
         let timer = MockTimerEngine()
         let chime = MockChimePlayer()
         let background = MockBackgroundAudioController()
@@ -273,6 +288,7 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         XCTAssertEqual(viewModel.completedSessionCount, 1)
         XCTAssertFalse(PauseSessionStore.load().isActive)
         XCTAssertEqual(background.stopCount, 1)
+        XCTAssertEqual(chime.playedChimes, [.end])
     }
 }
 
