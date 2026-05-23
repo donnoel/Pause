@@ -42,6 +42,11 @@ final class MockTimerEngine: MeditationTimerEngineProtocol {
         isRunning = false
         remaining = 0
     }
+
+    func emitTick(_ remaining: TimeInterval) {
+        self.remaining = remaining
+        onTick?(remaining)
+    }
 }
 
 final class MockChimePlayer: AudioChimePlaying {
@@ -65,14 +70,35 @@ final class MockBackgroundAudioController: BackgroundAudioControlling {
     }
 }
 
+final class MockNotificationScheduler: SessionNotificationScheduling {
+    private(set) var scheduleCallCount: Int = 0
+    private(set) var cancelCallCount: Int = 0
+    private(set) var lastHalfwayInterval: TimeInterval?
+    private(set) var lastCompletionInterval: TimeInterval?
+
+    func scheduleSessionSounds(halfwayAfter: TimeInterval?, completionAfter: TimeInterval) {
+        scheduleCallCount += 1
+        lastHalfwayInterval = halfwayAfter
+        lastCompletionInterval = completionAfter
+    }
+
+    func cancelSessionSounds() {
+        cancelCallCount += 1
+        lastHalfwayInterval = nil
+        lastCompletionInterval = nil
+    }
+}
+
 final class SessionViewModelConfigurationTests: XCTestCase {
     override func setUp() {
         super.setUp()
         PauseSessionStore.clear()
+        PauseSessionStore.clearCompletedSessionsForTesting()
     }
 
     override func tearDown() {
         PauseSessionStore.clear()
+        PauseSessionStore.clearCompletedSessionsForTesting()
         super.tearDown()
     }
 
@@ -84,7 +110,8 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         let viewModel = SessionViewModel(
             timerEngine: timer,
             chimePlayer: chime,
-            backgroundAudio: background
+            backgroundAudio: background,
+            notificationScheduler: MockNotificationScheduler()
         )
 
         viewModel.selectPreset(.five)
@@ -103,6 +130,63 @@ final class SessionViewModelConfigurationTests: XCTestCase {
     }
 
     @MainActor
+    func testStartingSessionSchedulesHalfwayAndCompletionSounds() {
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let notifications = MockNotificationScheduler()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background,
+            notificationScheduler: notifications
+        )
+
+        viewModel.startCustomDuration(minutes: 1)
+
+        let storedSession = PauseSessionStore.load()
+        XCTAssertEqual(viewModel.state, .running)
+        XCTAssertTrue(storedSession.isActive)
+        XCTAssertEqual(storedSession.plannedDuration ?? 0, 60, accuracy: 0.5)
+        XCTAssertEqual(notifications.scheduleCallCount, 1)
+        XCTAssertEqual(notifications.lastHalfwayInterval ?? 0, 30, accuracy: 1.0)
+        XCTAssertEqual(notifications.lastCompletionInterval ?? 0, 60, accuracy: 1.0)
+    }
+
+    @MainActor
+    func testPauseCancelsBackgroundSoundsAndResumeReschedulesFromRemainingTime() async {
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let notifications = MockNotificationScheduler()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background,
+            notificationScheduler: notifications
+        )
+
+        viewModel.startCustomDuration(minutes: 1)
+        timer.emitTick(20)
+        await Task.yield()
+
+        viewModel.togglePause()
+
+        XCTAssertEqual(viewModel.state, .paused)
+        XCTAssertFalse(PauseSessionStore.load().isActive)
+        XCTAssertEqual(notifications.cancelCallCount, 1)
+        XCTAssertEqual(background.stopCount, 1)
+
+        viewModel.togglePause()
+
+        XCTAssertEqual(viewModel.state, .running)
+        XCTAssertTrue(PauseSessionStore.load().isActive)
+        XCTAssertEqual(notifications.scheduleCallCount, 2)
+        XCTAssertNil(notifications.lastHalfwayInterval)
+        XCTAssertEqual(notifications.lastCompletionInterval ?? 0, 20, accuracy: 1.0)
+    }
+
+    @MainActor
     func testCancelClearsActiveSessionBreathingStyle() {
         let timer = MockTimerEngine()
         let chime = MockChimePlayer()
@@ -110,7 +194,8 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         let viewModel = SessionViewModel(
             timerEngine: timer,
             chimePlayer: chime,
-            backgroundAudio: background
+            backgroundAudio: background,
+            notificationScheduler: MockNotificationScheduler()
         )
 
         viewModel.selectBreathingStyle(.boxBreath)
@@ -132,7 +217,8 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         let viewModel = SessionViewModel(
             timerEngine: timer,
             chimePlayer: chime,
-            backgroundAudio: background
+            backgroundAudio: background,
+            notificationScheduler: MockNotificationScheduler()
         )
 
         viewModel.selectReflection(.calm)
@@ -163,7 +249,8 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         let viewModel = SessionViewModel(
             timerEngine: timer,
             chimePlayer: chime,
-            backgroundAudio: background
+            backgroundAudio: background,
+            notificationScheduler: MockNotificationScheduler()
         )
 
         XCTAssertEqual(viewModel.state, .completed)
@@ -181,7 +268,8 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         let viewModel = SessionViewModel(
             timerEngine: MockTimerEngine(),
             chimePlayer: MockChimePlayer(),
-            backgroundAudio: MockBackgroundAudioController()
+            backgroundAudio: MockBackgroundAudioController(),
+            notificationScheduler: MockNotificationScheduler()
         )
 
         viewModel.selectRitualPreset(.reset)
@@ -197,7 +285,8 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         let viewModel = SessionViewModel(
             timerEngine: MockTimerEngine(),
             chimePlayer: MockChimePlayer(),
-            backgroundAudio: MockBackgroundAudioController()
+            backgroundAudio: MockBackgroundAudioController(),
+            notificationScheduler: MockNotificationScheduler()
         )
 
         viewModel.selectRitualPreset(.focus)
@@ -213,7 +302,8 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         let viewModel = SessionViewModel(
             timerEngine: MockTimerEngine(),
             chimePlayer: MockChimePlayer(),
-            backgroundAudio: MockBackgroundAudioController()
+            backgroundAudio: MockBackgroundAudioController(),
+            notificationScheduler: MockNotificationScheduler()
         )
 
         viewModel.selectRitualPreset(.focus)
@@ -230,10 +320,12 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         let timer = MockTimerEngine()
         let chime = MockChimePlayer()
         let background = MockBackgroundAudioController()
+        let notifications = MockNotificationScheduler()
         let viewModel = SessionViewModel(
             timerEngine: timer,
             chimePlayer: chime,
-            backgroundAudio: background
+            backgroundAudio: background,
+            notificationScheduler: notifications
         )
 
         let startDate = Date().addingTimeInterval(-60)
@@ -257,17 +349,54 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         XCTAssertEqual(viewModel.total, endDate.timeIntervalSince(startDate), accuracy: 0.5)
         XCTAssertGreaterThan(viewModel.remaining, 0)
         XCTAssertLessThanOrEqual(viewModel.remaining, endDate.timeIntervalSince(Date()) + 1.0)
+        XCTAssertEqual(notifications.scheduleCallCount, 1)
+        XCTAssertGreaterThan(notifications.lastHalfwayInterval ?? 0, 0)
+        XCTAssertEqual(notifications.lastCompletionInterval ?? 0, endDate.timeIntervalSince(Date()), accuracy: 1.0)
     }
 
     @MainActor
-    func testHandleSceneDidBecomeActiveCompletesExpiredStoredSessionAndPlaysEndChime() {
+    func testHandleSceneDidBecomeActiveSkipsHalfwaySoundWhenHalfwayAlreadyPassed() {
         let timer = MockTimerEngine()
         let chime = MockChimePlayer()
         let background = MockBackgroundAudioController()
+        let notifications = MockNotificationScheduler()
         let viewModel = SessionViewModel(
             timerEngine: timer,
             chimePlayer: chime,
-            backgroundAudio: background
+            backgroundAudio: background,
+            notificationScheduler: notifications
+        )
+
+        let startDate = Date().addingTimeInterval(-360)
+        let endDate = Date().addingTimeInterval(240)
+        PauseSessionStore.save(
+            PauseSessionInfo(
+                isActive: true,
+                startDate: startDate,
+                endDate: endDate,
+                plannedDuration: 600
+            )
+        )
+
+        viewModel.handleSceneDidBecomeActive()
+
+        XCTAssertEqual(viewModel.state, .running)
+        XCTAssertEqual(timer.lastRestoredTotal, 600, accuracy: 0.5)
+        XCTAssertNil(notifications.lastHalfwayInterval)
+        XCTAssertEqual(notifications.lastCompletionInterval ?? 0, endDate.timeIntervalSince(Date()), accuracy: 1.0)
+    }
+
+    @MainActor
+    func testHandleSceneDidBecomeActiveCompletesExpiredStoredSessionWithoutLateChime() {
+        let timer = MockTimerEngine()
+        let chime = MockChimePlayer()
+        let background = MockBackgroundAudioController()
+        let notifications = MockNotificationScheduler()
+        let viewModel = SessionViewModel(
+            timerEngine: timer,
+            chimePlayer: chime,
+            backgroundAudio: background,
+            notificationScheduler: notifications
         )
 
         let endDate = Date().addingTimeInterval(-5)
@@ -288,7 +417,8 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         XCTAssertEqual(viewModel.completedSessionCount, 1)
         XCTAssertFalse(PauseSessionStore.load().isActive)
         XCTAssertEqual(background.stopCount, 1)
-        XCTAssertEqual(chime.playedChimes, [.end])
+        XCTAssertEqual(chime.playedChimes, [])
+        XCTAssertEqual(notifications.cancelCallCount, 1)
     }
 }
 

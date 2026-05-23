@@ -14,7 +14,7 @@ protocol AudioChimePlaying {
     func play(chimeType: ChimeType)
 }
 
-/// Concrete implementation that prefers a bundled `chime.mp3` and falls back
+/// Concrete implementation that prefers a bundled `chime.caf` and falls back
 /// to a built-in system sound if the bundled file is unavailable.
 final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDelegate {
 
@@ -22,7 +22,7 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDe
 
     // If you ever change the file name/extension, just update these.
     private let fileName = "chime"
-    private let fileExtension = "mp3"
+    private let fileExtension = "caf"
 
     /// Master chime volume relative to system volume.
     /// 1.0 = full, 0.0 = silent. 0.25 is a "polite" chime.

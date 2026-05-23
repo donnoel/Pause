@@ -138,6 +138,8 @@ struct PauseLockScreenWidgetView: View {
                     .monospacedDigit()
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
                 VStack(spacing: 2) {
                     Image(systemName: "play.fill")
@@ -146,9 +148,22 @@ struct PauseLockScreenWidgetView: View {
                         .font(.system(size: 9, weight: .semibold, design: .rounded))
                         .lineLimit(1)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .widgetAccentable()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Pause timer"))
+        .accessibilityValue(circularAccessibilityValue)
+    }
+
+    private var circularAccessibilityValue: Text {
+        if entry.isActive, let end = entry.endDate {
+            return Text(timerInterval: entry.date...end, countsDown: true)
+        }
+
+        return Text("Ready")
     }
 
     private var rectangularView: some View {

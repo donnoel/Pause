@@ -1028,6 +1028,12 @@ extension SessionViewModel {
         let engine = MeditationTimerEngine()
         let chimePlayer = SystemAudioChimePlayer()
         let backgroundAudio: BackgroundAudioControlling = BackgroundAudioManager.shared
-        self.init(timerEngine: engine, chimePlayer: chimePlayer, backgroundAudio: backgroundAudio)
+        let notificationScheduler: SessionNotificationScheduling = SessionNotificationScheduler()
+        self.init(
+            timerEngine: engine,
+            chimePlayer: chimePlayer,
+            backgroundAudio: backgroundAudio,
+            notificationScheduler: notificationScheduler
+        )
     }
 }

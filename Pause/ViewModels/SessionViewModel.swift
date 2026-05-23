@@ -20,6 +20,7 @@ final class SessionViewModel: ObservableObject {
     private let timerEngine: MeditationTimerEngineProtocol
     private let chimePlayer: AudioChimePlaying
     private let backgroundAudio: BackgroundAudioControlling
+    private let notificationScheduler: SessionNotificationScheduling
     private var sessionStartDate: Date?
     private var lifecycleCancellables: Set<AnyCancellable> = []
 
@@ -41,15 +42,20 @@ final class SessionViewModel: ObservableObject {
 
     init(timerEngine: MeditationTimerEngineProtocol,
          chimePlayer: AudioChimePlaying,
-         backgroundAudio: BackgroundAudioControlling) {
+         backgroundAudio: BackgroundAudioControlling,
+         notificationScheduler: SessionNotificationScheduling = SessionNotificationScheduler()) {
         self.timerEngine = timerEngine
         self.chimePlayer = chimePlayer
         self.backgroundAudio = backgroundAudio
+        self.notificationScheduler = notificationScheduler
 
         timerEngine.onTick = { [weak self] remaining in
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                self.remaining = max(remaining, 0)
+                if self.completeStoredSessionIfExpired() {
+                    return
+                }
+                self.remaining = self.correctedRemainingForActiveSession(incomingRemaining: remaining)
             }
         }
 
@@ -69,6 +75,13 @@ final class SessionViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.handleSceneDidBecomeActive()
+            }
+            .store(in: &lifecycleCancellables)
+
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.handleSceneWillEnterForeground()
             }
             .store(in: &lifecycleCancellables)
 
@@ -199,9 +212,12 @@ final class SessionViewModel: ObservableObject {
         case .running:
             timerEngine.pause()
             state = .paused
+            notificationScheduler.cancelSessionSounds()
+            backgroundAudio.stopKeepingAlive()
+            PauseSessionStore.clear()
         case .paused:
+            guard resumePausedSession() else { return }
             timerEngine.resume()
-            state = .running
         default:
             break
         }
@@ -215,6 +231,7 @@ final class SessionViewModel: ObservableObject {
         selectedReflection = nil
         activeSessionBreathingStyle = nil
         sessionStartDate = nil
+        notificationScheduler.cancelSessionSounds()
         backgroundAudio.stopKeepingAlive()
         PauseSessionStore.clear()
     }
@@ -226,7 +243,12 @@ final class SessionViewModel: ObservableObject {
 
     func handleSceneDidBecomeActive() {
         guard state != .paused else { return }
-        restoreActiveSessionIfNeeded(playCompletionChime: true)
+        restoreActiveSessionIfNeeded(playCompletionChime: false)
+    }
+
+    func handleSceneWillEnterForeground() {
+        guard state != .paused else { return }
+        restoreActiveSessionIfNeeded(playCompletionChime: false)
     }
 
     private func restoreActiveSessionIfNeeded(playCompletionChime: Bool) {
@@ -241,19 +263,23 @@ final class SessionViewModel: ObservableObject {
 
         let remainingInterval = end.timeIntervalSince(now)
         let totalInterval: TimeInterval
-        if let start = info.startDate {
+        if let plannedDuration = info.plannedDuration, plannedDuration > 0 {
+            totalInterval = plannedDuration
+        } else if let start = info.startDate {
             totalInterval = end.timeIntervalSince(start)
         } else {
             totalInterval = remainingInterval
         }
 
         total = totalInterval
-        remaining = remainingInterval
+        remaining = min(remainingInterval, totalInterval)
         state = .running
         activeSessionBreathingStyle = activeSessionBreathingStyle ?? selectedBreathingStyle
         sessionStartDate = info.startDate
 
-        timerEngine.restore(totalDuration: totalInterval, remainingDuration: remainingInterval)
+        timerEngine.restore(totalDuration: totalInterval, remainingDuration: remaining)
+        scheduleSessionSounds(startDate: info.startDate, endDate: end, plannedDuration: totalInterval)
+        backgroundAudio.startKeepingAlive()
     }
 
     // MARK: - Private
@@ -274,10 +300,15 @@ final class SessionViewModel: ObservableObject {
             PauseSessionInfo(
                 isActive: true,
                 startDate: startTime,
-                endDate: endTime
+                endDate: endTime,
+                plannedDuration: duration
             )
         )
 
+        notificationScheduler.scheduleSessionSounds(
+            halfwayAfter: duration / 2,
+            completionAfter: duration
+        )
         backgroundAudio.startKeepingAlive()
 
         timerEngine.start(duration: duration)
@@ -300,12 +331,13 @@ final class SessionViewModel: ObservableObject {
 
     private func completeRestoredSession(_ info: PauseSessionInfo, endedAt completionDate: Date, playCompletionChime: Bool) {
         timerEngine.cancel()
+        notificationScheduler.cancelSessionSounds()
         state = .completed
         remaining = 0
         selectedReflection = nil
 
         let startedAt = info.startDate ?? completionDate
-        let plannedDuration = max(0, completionDate.timeIntervalSince(startedAt))
+        let plannedDuration = info.plannedDuration ?? max(0, completionDate.timeIntervalSince(startedAt))
         total = plannedDuration
 
         if playCompletionChime {
@@ -328,6 +360,7 @@ final class SessionViewModel: ObservableObject {
     }
 
     private func handleCompletion() {
+        notificationScheduler.cancelSessionSounds()
         state = .completed
         remaining = 0
         selectedReflection = nil
@@ -357,6 +390,68 @@ final class SessionViewModel: ObservableObject {
             guard let self, self.state == .completed else { return }
             self.backgroundAudio.stopKeepingAlive()
         }
+    }
+
+    private func resumePausedSession() -> Bool {
+        let resumeRemaining = max(0, remaining)
+        guard resumeRemaining > 0, total > 0 else {
+            cancel()
+            return false
+        }
+
+        let now = Date()
+        let elapsedBeforePause = max(0, total - resumeRemaining)
+        let adjustedStartDate = now.addingTimeInterval(-elapsedBeforePause)
+        let endDate = now.addingTimeInterval(resumeRemaining)
+
+        state = .running
+        sessionStartDate = adjustedStartDate
+        PauseSessionStore.save(
+            PauseSessionInfo(
+                isActive: true,
+                startDate: adjustedStartDate,
+                endDate: endDate,
+                plannedDuration: total
+            )
+        )
+        scheduleSessionSounds(startDate: adjustedStartDate, endDate: endDate, plannedDuration: total)
+        backgroundAudio.startKeepingAlive()
+        return true
+    }
+
+    private func scheduleSessionSounds(startDate: Date?, endDate: Date, plannedDuration: TimeInterval) {
+        let now = Date()
+        let completionInterval = endDate.timeIntervalSince(now)
+        guard completionInterval > 0 else { return }
+
+        let halfwayDate = (startDate ?? endDate.addingTimeInterval(-plannedDuration))
+            .addingTimeInterval(plannedDuration / 2)
+        let halfwayInterval = halfwayDate > now ? halfwayDate.timeIntervalSince(now) : nil
+
+        notificationScheduler.scheduleSessionSounds(
+            halfwayAfter: halfwayInterval,
+            completionAfter: completionInterval
+        )
+    }
+
+    private func completeStoredSessionIfExpired(now: Date = Date()) -> Bool {
+        guard state == .running else { return false }
+
+        let info = PauseSessionStore.load()
+        guard info.isActive, let endDate = info.endDate, now >= endDate else { return false }
+
+        completeRestoredSession(info, endedAt: endDate, playCompletionChime: false)
+        return true
+    }
+
+    private func correctedRemainingForActiveSession(incomingRemaining: TimeInterval, now: Date = Date()) -> TimeInterval {
+        guard state == .running else { return max(incomingRemaining, 0) }
+
+        let info = PauseSessionStore.load()
+        guard info.isActive, let endDate = info.endDate else { return max(incomingRemaining, 0) }
+
+        let persistedRemaining = max(0, endDate.timeIntervalSince(now))
+        return min(max(incomingRemaining, 0), persistedRemaining)
     }
 
     private func refreshStats() {

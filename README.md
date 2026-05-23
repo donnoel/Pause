@@ -47,7 +47,7 @@ A lightweight AudioChimePlayer wraps AVAudioPlayer to deliver soft, unobtrusive 
 	•	session end
 
 The audio system includes graceful error handling for missing or unsupported audio files during normal app use.
-The app does not use background audio keep-alive; active-session timing is restored from persisted session dates when the app returns to the foreground.
+Halfway and completion chimes are scheduled as local notifications with the original chime sound so they can fire while the app is backgrounded or the Lock Screen is active without declaring background audio mode.
 
 📊 Session Stats
 
@@ -103,6 +103,7 @@ PauseApp.swift
 │   ├── AudioChimePlayer.swift      # Chime playback subsystem
 │   ├── MeditationDesignSystem.swift# Shared colors/styles
 │   ├── MeditationTimerEngine.swift # Core timing logic with Combine
+│   ├── SessionNotificationScheduler.swift # Lock Screen chime notification scheduling
 │   ├── PauseSessionStore.swift     # Shared model for widgets & app
 │   └── BackgroundAudioManager.swift# Background-audio compatibility shim
 └── Views/
@@ -112,7 +113,7 @@ The codebase avoids unnecessary complexity, making it approachable and ideal for
 
 ⌚ Background-Safe Timer Handling
 
-MeditationTimerEngine uses Combine while the app is active, and PauseSessionStore preserves session dates so timing and widgets restore cleanly after backgrounding.
+MeditationTimerEngine drives foreground updates while the app is active, PauseSessionStore preserves session dates so timing and widgets restore cleanly after backgrounding, and SessionNotificationScheduler schedules halfway/completion chime notifications without enabling background audio mode.
 
 ⸻
 

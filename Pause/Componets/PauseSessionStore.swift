@@ -7,6 +7,7 @@ struct PauseSessionInfo: Codable {
     var isActive: Bool
     var startDate: Date?
     var endDate: Date?
+    var plannedDuration: TimeInterval?
 }
 
 enum PauseSessionStore {
@@ -51,6 +52,14 @@ enum PauseSessionStore {
         defaults.removeObject(forKey: key)
         reloadWidgetTimelines()
     }
+
+    #if DEBUG
+    static func clearCompletedSessionsForTesting() {
+        guard let defaults else { return }
+        defaults.removeObject(forKey: completedSessionsKey)
+        reloadWidgetTimelines()
+    }
+    #endif
 
     static func configureInsightsICloudSync() {
         guard !iCloudSyncConfigured else { return }
