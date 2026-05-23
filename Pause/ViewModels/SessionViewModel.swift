@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UIKit
 
 @MainActor
 final class SessionViewModel: ObservableObject {
@@ -20,6 +21,7 @@ final class SessionViewModel: ObservableObject {
     private let chimePlayer: AudioChimePlaying
     private let backgroundAudio: BackgroundAudioControlling
     private var sessionStartDate: Date?
+    private var lifecycleCancellables: Set<AnyCancellable> = []
 
     private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -62,6 +64,13 @@ final class SessionViewModel: ObservableObject {
                 self?.handleCompletion()
             }
         }
+
+        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.handleSceneDidBecomeActive()
+            }
+            .store(in: &lifecycleCancellables)
 
         restoreActiveSessionIfNeeded()
         refreshStats()
@@ -215,20 +224,18 @@ final class SessionViewModel: ObservableObject {
         cancel()
     }
 
+    func handleSceneDidBecomeActive() {
+        guard state != .paused else { return }
+        restoreActiveSessionIfNeeded()
+    }
+
     private func restoreActiveSessionIfNeeded() {
         let info = PauseSessionStore.load()
         guard info.isActive, let end = info.endDate else { return }
 
         let now = Date()
         if now >= end {
-            // Session already finished – move to completed and clear store.
-            state = .completed
-            remaining = 0
-            sessionStartDate = nil
-            if let start = info.startDate {
-                total = end.timeIntervalSince(start)
-            }
-            PauseSessionStore.clear()
+            completeRestoredSession(info, endedAt: end)
             return
         }
 
@@ -243,7 +250,7 @@ final class SessionViewModel: ObservableObject {
         total = totalInterval
         remaining = remainingInterval
         state = .running
-        activeSessionBreathingStyle = selectedBreathingStyle
+        activeSessionBreathingStyle = activeSessionBreathingStyle ?? selectedBreathingStyle
         sessionStartDate = info.startDate
 
         timerEngine.start(duration: remainingInterval)
@@ -289,6 +296,31 @@ final class SessionViewModel: ObservableObject {
 
     private var canEditConfiguration: Bool {
         state == .idle || state == .completed
+    }
+
+    private func completeRestoredSession(_ info: PauseSessionInfo, endedAt completionDate: Date) {
+        timerEngine.cancel()
+        state = .completed
+        remaining = 0
+        selectedReflection = nil
+
+        let startedAt = info.startDate ?? completionDate
+        let plannedDuration = max(0, completionDate.timeIntervalSince(startedAt))
+        total = plannedDuration
+
+        if plannedDuration > 0, completionDate > startedAt {
+            PauseSessionStore.recordCompletedSession(
+                startDate: startedAt,
+                endDate: completionDate,
+                plannedDuration: plannedDuration
+            )
+        }
+
+        activeSessionBreathingStyle = nil
+        sessionStartDate = nil
+        PauseSessionStore.clear()
+        refreshStats()
+        backgroundAudio.stopKeepingAlive()
     }
 
     private func handleCompletion() {
