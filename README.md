@@ -203,6 +203,12 @@ Run tests via:
 
 Pull requests are welcome. If you’d like to improve animations, add additional breathing modes, or enhance widget functionality, open an issue and let’s talk.
 
+⸻
+
+🙏 Credits
+
+Built with care by **Don Noel** and Codex collaboration.
+
 
 🌟 Final Note
 
