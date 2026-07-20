@@ -1,0 +1,23 @@
+title: Pause
+description: A minimal breathing and mindfulness timer for iPhone and iPad.
+tagline: Breathe deeper. Slow down. Return to yourself.
+project_label: Don Noel / Projects
+status_label: App + widgets
+github_url: https://github.com/donnoel/Pause
+url: https://donnoel.github.io
+baseurl: /Pause
+lang: en-US
+
+remote_theme: donnoel/projects-theme@v1.0.0
+plugins:
+  - jekyll-remote-theme
+
+exclude:
+  - AGENTS.md
+  - AGENTS.project.md
+  - Pause
+  - Pause.xcodeproj
+  - PauseTests
+  - PauseUITests
+  - PauseWidget
+
