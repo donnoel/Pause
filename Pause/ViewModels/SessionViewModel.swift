@@ -43,15 +43,15 @@ final class SessionViewModel: ObservableObject {
     init(timerEngine: MeditationTimerEngineProtocol,
          chimePlayer: AudioChimePlaying,
          backgroundAudio: BackgroundAudioControlling,
-         notificationScheduler: SessionNotificationScheduling = SessionNotificationScheduler()) {
+         notificationScheduler: SessionNotificationScheduling? = nil) {
         self.timerEngine = timerEngine
         self.chimePlayer = chimePlayer
         self.backgroundAudio = backgroundAudio
-        self.notificationScheduler = notificationScheduler
+        self.notificationScheduler = notificationScheduler ?? SessionNotificationScheduler()
 
         timerEngine.onTick = { [weak self] remaining in
             Task { @MainActor [weak self] in
-                guard let self = self else { return }
+                guard let self = self, self.state == .running else { return }
                 if self.completeStoredSessionIfExpired() {
                     return
                 }
@@ -116,6 +116,14 @@ final class SessionViewModel: ObservableObject {
 
     var breathingStyleForCurrentSession: BreathingStyle {
         activeSessionBreathingStyle ?? selectedBreathingStyle
+    }
+
+    /// Read-only visual clock; uses the same adjusted start date as background timing.
+    func breathingElapsed(at date: Date) -> TimeInterval {
+        if state == .running, let sessionStartDate {
+            return min(total, max(total - remaining, date.timeIntervalSince(sessionStartDate)))
+        }
+        return max(0, total - remaining)
     }
 
     var completedSessionDates: Set<DateComponents> {
@@ -210,6 +218,7 @@ final class SessionViewModel: ObservableObject {
     func togglePause() {
         switch state {
         case .running:
+            remaining = max(0, total - breathingElapsed(at: Date()))
             timerEngine.pause()
             state = .paused
             notificationScheduler.cancelSessionSounds()

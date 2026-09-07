@@ -65,9 +65,13 @@ Partial or cancelled sessions are not recorded in the calendar or summary stats.
 Pause uses clean, modern SwiftUI views and a lightweight design system across:
 	•	a single-screen session flow (idle, running/paused, completed)
 	•	configuration cards for ritual, duration, and breathing style
-	•	a breathing-orb timer focal element with progress and optional phase cues
+	•	a breathing orb that expands on inhale, stays still during holds, and contracts on exhale; the smaller countdown stays steady
 	•	a calm completion reflection step
 	•	a card-based Insights sheet
+
+Active sessions use a centered layout with quieter controls. Guided breathing always shows phase words alongside the pulsing circle; Reduce Motion keeps the words and uses a still orb. VoiceOver exposes the current breathing phase.
+
+Rituals have subtle mint, cyan, warm orange, and midnight atmospheres. **Sleep Wind Down** uses a dark appearance and offers **Hide countdown / Show countdown** during the session. These are presentation changes; duration, bells, and deliberate Begin behavior remain the same. A settling prompt appears before Begin, and completion brings the circle to rest with a gentle reflection invitation.
 
 Everything is intentionally minimal and soothing — nothing steals focus.
 

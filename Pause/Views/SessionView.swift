@@ -12,7 +12,7 @@ struct SessionView: View {
 
     @State private var customMinutesSelection: Int = 5
     @State private var isStatsSheetPresented: Bool = false
-    @State private var isOrbExpanded: Bool = false
+    @State private var hideCountdown = false
 
     init(viewModel: SessionViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -20,7 +20,8 @@ struct SessionView: View {
 
     var body: some View {
         ZStack {
-            MeditationColors.backgroundPrimary(for: colorScheme)
+            MeditationColors.backgroundPrimary(for: sessionColorScheme)
+                .overlay(ritualTint.opacity(sessionColorScheme == .dark ? 0.07 : 0.09))
                 .ignoresSafeArea()
 
             GeometryReader { proxy in
@@ -37,14 +38,9 @@ struct SessionView: View {
                 .presentationDetents(insightsPresentationDetents)
                 .presentationDragIndicator(.visible)
         }
-        .onAppear {
-            updateOrbMotionState()
-        }
-        .onChange(of: viewModel.state) { _, _ in
-            updateOrbMotionState()
-        }
-        .onChange(of: reduceMotion) { _, _ in
-            updateOrbMotionState()
+        .environment(\.colorScheme, sessionColorScheme)
+        .onChange(of: viewModel.state) { _, newState in
+            if newState == .idle { hideCountdown = false }
         }
     }
 
@@ -52,10 +48,9 @@ struct SessionView: View {
 
     private func sessionLayout(minHeight: CGFloat) -> some View {
         VStack(spacing: isRegularWidth ? 22 : 18) {
-            VStack(spacing: isRegularWidth ? 8 : 6) {
-                topRegion
-                heroRegion
-            }
+            topRegion
+            if isActive { Spacer(minLength: 24) }
+            heroRegion
 
             if viewModel.state == .idle {
                 configurationRegion
@@ -66,13 +61,15 @@ struct SessionView: View {
             }
 
             actionRegion
+            if isActive { Spacer(minLength: 24) }
         }
         .padding(.horizontal, isRegularWidth ? 24 : 16)
         .padding(.top, isRegularWidth ? 18 : 14)
         .padding(.bottom, isRegularWidth ? 22 : 18)
         .frame(maxWidth: maxContentWidth)
-        .frame(minHeight: minHeight, alignment: .top)
+        .frame(minHeight: max(0, minHeight - 40), alignment: .top)
         .frame(maxWidth: .infinity, alignment: .top)
+        .animation(reduceMotion || viewModel.state != .completed ? nil : .easeOut(duration: 1.2), value: viewModel.state)
     }
 
     private var isRegularWidth: Bool {
@@ -117,15 +114,16 @@ struct SessionView: View {
             } label: {
                 Label("Insights", systemImage: "chart.bar")
                     .font(.footnote.weight(.semibold))
+                    .frame(minHeight: 30)
                     .padding(.horizontal, 11)
                     .padding(.vertical, 7)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(MeditationColors.surfaceElevated(for: colorScheme))
+                            .fill(MeditationColors.surfaceElevated(for: sessionColorScheme))
                     )
                     .overlay(
                         Capsule(style: .continuous)
-                            .stroke(MeditationColors.surfaceElevatedStroke(for: colorScheme), lineWidth: 1)
+                            .stroke(MeditationColors.surfaceElevatedStroke(for: sessionColorScheme), lineWidth: 1)
                     )
             }
             .buttonStyle(.plain)
@@ -134,34 +132,55 @@ struct SessionView: View {
         }
     }
 
+    private var isActive: Bool {
+        viewModel.state == .running || viewModel.state == .paused
+    }
+
+    private var sessionColorScheme: ColorScheme {
+        viewModel.selectedRitualPreset == .sleepWindDown ? .dark : colorScheme
+    }
+
+    private var ritualTint: Color {
+        switch viewModel.selectedRitualPreset {
+        case .reset: return .mint
+        case .focus: return .cyan
+        case .unwind: return .orange
+        case .sleepWindDown: return .indigo
+        case nil: return MeditationColors.accentPrimary
+        }
+    }
+
     private var heroRegion: some View {
-        VStack(spacing: 10) {
-            breathingOrb
-                .frame(width: heroDiameter, height: heroDiameter)
-                .frame(maxWidth: .infinity)
+        TimelineView(.animation(minimumInterval: reduceMotion ? 1 : 1.0 / 30,
+                                paused: viewModel.state != .running || viewModel.breathingStyleForCurrentSession == .quietTimer)) { context in
+            let phase = isActive ? viewModel.breathingStyleForCurrentSession.phase(
+                elapsed: viewModel.breathingElapsed(at: context.date)) : nil
+            VStack(spacing: 24) {
+                breathingOrb(phase: phase)
+                    .frame(width: heroDiameter, height: heroDiameter)
+                    .frame(maxWidth: .infinity)
 
-            if let phaseCueText {
-                Text(phaseCueText)
-                    .font(.headline.weight(.medium))
-                    .foregroundColor(MeditationColors.textPrimary)
-                    .transition(.opacity)
-            }
+                if viewModel.state == .paused {
+                    Text("Paused").font(.headline)
+                } else if let phase {
+                    Text(phase.cue).font(.headline)
+                }
 
-            if let heroSublabel {
-                Text(heroSublabel)
-                    .font(.footnote)
-                    .foregroundColor(MeditationColors.textSecondary)
-                    .transition(.opacity)
+                if let heroSublabel {
+                    Text(heroSublabel)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
             }
         }
-        .padding(.top, isRegularPortrait ? 48 : 0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: viewModel.state)
+        .padding(.top, isRegularPortrait && !isActive ? 32 : 0)
     }
 
     private var configurationRegion: some View {
         SessionConfigurationCard(
             isRegularWidth: isRegularWidth,
-            colorScheme: colorScheme,
+            colorScheme: sessionColorScheme,
             selectionDescription: selectionDescription
         ) {
             configurationSection(title: "Ritual") {
@@ -185,16 +204,30 @@ struct SessionView: View {
 
             configurationSection(title: "Breathing Style") {
                 breathingStyleSelector
+
             }
         }
     }
 
     private var actionRegion: some View {
         VStack(spacing: 10) {
+            if isActive && viewModel.selectedRitualPreset == .sleepWindDown {
+                Button {
+                    hideCountdown.toggle()
+                } label: {
+                    Text(hideCountdown ? "Show countdown" : "Hide countdown")
+                        .font(.subheadline)
+                        .frame(minHeight: 44)
+                }
+            }
             Button(action: primaryButtonTapped) {
                 Text(primaryButtonTitle)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .background(isActive ? Color.primary.opacity(0.08) : MeditationColors.accentPrimary,
+                                in: Capsule())
             }
-            .buttonStyle(PrimaryButtonStyle())
+            .buttonStyle(.plain)
             .accessibilityLabel(Text(primaryButtonAccessibilityLabel))
             .accessibilityHint(Text(primaryButtonAccessibilityHint))
 
@@ -204,10 +237,11 @@ struct SessionView: View {
                     viewModel.cancel()
                 } label: {
                     Text("End Session")
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
                 .accessibilityLabel(Text("End current session"))
             } else if viewModel.state == .completed {
                 Button {
@@ -222,7 +256,7 @@ struct SessionView: View {
                 .accessibilityLabel(Text("Prepare a new session"))
             }
         }
-        .frame(maxWidth: actionMaxWidth)
+        .frame(maxWidth: isActive ? 320 : actionMaxWidth)
     }
 
     private var reflectionRegion: some View {
@@ -253,29 +287,30 @@ struct SessionView: View {
         .padding(isRegularWidth ? 18 : 16)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(MeditationColors.surfacePrimary(for: colorScheme))
+                .fill(MeditationColors.surfacePrimary(for: sessionColorScheme))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
+                .stroke(MeditationColors.surfaceStroke(for: sessionColorScheme), lineWidth: 1)
         )
         .accessibilityElement(children: .contain)
     }
 
     // MARK: - Pieces
 
-    private var breathingOrb: some View {
+    private func breathingOrb(phase: BreathingStyle.Phase?) -> some View {
         BreathingOrbView(
             progress: ringProgress,
             heroDiameter: heroDiameter,
-            orbScale: orbScale,
-            isOrbExpanded: isOrbExpanded,
+            orbScale: reduceMotion ? 1 : CGFloat(0.68 + 0.32 * (phase?.expansion ?? 0.5)),
             reduceMotion: reduceMotion,
-            colorScheme: colorScheme,
-            timerText: formattedTime(displayedInterval),
-            timerFont: timerFont,
+            colorScheme: sessionColorScheme,
+            accent: ritualTint,
+            timerText: viewModel.state == .completed ? "✓" : formattedTime(displayedInterval),
+            timerFont: isActive ? .system(.title, design: .rounded).weight(.medium) : timerFont,
             centerCaption: centerCaption,
-            accessibilityLabel: "Time \(viewModel.state == .running || viewModel.state == .paused ? "remaining" : "selected"): \(formattedAccessibleTime(displayedInterval))"
+            hideCountdown: hideCountdown && isActive,
+            accessibilityLabel: [phase?.cue, hideCountdown && isActive ? nil : "Time \(isActive ? "remaining" : "selected"): \(formattedAccessibleTime(displayedInterval))"].compactMap { $0 }.joined(separator: ". ")
         )
     }
 
@@ -421,23 +456,12 @@ struct SessionView: View {
         return "Remaining"
     }
 
-    private var phaseCueText: String? {
-        switch viewModel.state {
-        case .running:
-            return breathingCue
-        case .paused:
-            return "Paused"
-        default:
-            return nil
-        }
-    }
-
     private var heroSublabel: String? {
         switch viewModel.state {
         case .idle:
-            return "Ready when you are"
+            return "Get comfortable. Begin when you’re ready."
         case .completed:
-            return "Finished \(formattedTime(viewModel.total))"
+            return "Take your time. Notice how you feel."
         default:
             return nil
         }
@@ -465,27 +489,14 @@ struct SessionView: View {
         viewModel.selectedBreathingStyle.title
     }
 
-    private var breathingCue: String? {
-        guard viewModel.total > 0 else {
-            return viewModel.breathingStyleForCurrentSession.phaseCue(elapsed: 0)
-        }
-        let elapsed = max(0, viewModel.total - viewModel.remaining)
-        return viewModel.breathingStyleForCurrentSession.phaseCue(elapsed: elapsed)
-    }
-
     private var heroDiameter: CGFloat {
         if isRegularWidth {
-            return heroBaseSize * 1.34
+            return min(heroBaseSize * 1.55, 400)
         }
         if verticalSizeClass == .compact {
-            return heroBaseSize * 1.10
+            return min(heroBaseSize * 1.10, 260)
         }
-        return heroBaseSize * 1.03
-    }
-
-    private var orbScale: CGFloat {
-        guard !reduceMotion, viewModel.state == .idle else { return 1.0 }
-        return isOrbExpanded ? 1.03 : 0.97
+        return min(heroBaseSize * 1.03, 290)
     }
 
     private var displayedInterval: TimeInterval {
@@ -557,18 +568,6 @@ struct SessionView: View {
         case .running, .paused:
             Haptics.selection()
             viewModel.togglePause()
-        }
-    }
-
-    private func updateOrbMotionState() {
-        guard !reduceMotion, viewModel.state == .idle else {
-            isOrbExpanded = false
-            return
-        }
-
-        guard !isOrbExpanded else { return }
-        withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
-            isOrbExpanded = true
         }
     }
 
@@ -645,7 +644,7 @@ struct SessionView: View {
             isPresented: $isStatsSheetPresented,
             isRegularWidth: isRegularWidth,
             shouldScroll: shouldScrollInsights,
-            colorScheme: colorScheme
+            colorScheme: sessionColorScheme
         ) {
             insightsContent
         }
@@ -762,11 +761,11 @@ struct SessionView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(MeditationColors.surfacePrimary(for: colorScheme))
+                    .fill(MeditationColors.surfacePrimary(for: sessionColorScheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(MeditationColors.surfaceStroke(for: colorScheme), lineWidth: 1)
+                    .stroke(MeditationColors.surfaceStroke(for: sessionColorScheme), lineWidth: 1)
             )
     }
 
@@ -787,7 +786,7 @@ struct SessionView: View {
 
     private var configurationDivider: some View {
         Divider()
-            .overlay(MeditationColors.surfaceStroke(for: colorScheme).opacity(0.48))
+            .overlay(MeditationColors.surfaceStroke(for: sessionColorScheme).opacity(0.48))
     }
 
     private var insightsHeaderDescription: String {
@@ -831,12 +830,13 @@ private struct BreathingOrbView: View {
     let progress: CGFloat
     let heroDiameter: CGFloat
     let orbScale: CGFloat
-    let isOrbExpanded: Bool
     let reduceMotion: Bool
     let colorScheme: ColorScheme
+    let accent: Color
     let timerText: String
     let timerFont: Font
     let centerCaption: String
+    let hideCountdown: Bool
     let accessibilityLabel: String
 
     var body: some View {
@@ -855,20 +855,19 @@ private struct BreathingOrbView: View {
                 )
 
             Circle()
-                .fill(MeditationColors.orbInnerGradient(for: colorScheme))
-                .padding(heroDiameter * 0.135)
+                .fill(RadialGradient(colors: [accent.opacity(0.45), accent.opacity(0.12)], center: .center, startRadius: 0, endRadius: heroDiameter / 2))
+                .padding(heroDiameter * 0.07)
                 .scaleEffect(orbScale)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: isOrbExpanded)
 
             Circle()
-                .stroke(MeditationColors.ringTrack(for: colorScheme), lineWidth: 7)
+                .stroke(MeditationColors.ringTrack(for: colorScheme), lineWidth: 2)
                 .padding(5)
 
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
                     style: StrokeStyle(
-                        lineWidth: 7,
+                        lineWidth: 2,
                         lineCap: .round,
                         lineJoin: .round
                     )
@@ -895,10 +894,12 @@ private struct BreathingOrbView: View {
                     .foregroundColor(MeditationColors.textSecondary)
             }
             .padding(24)
+            .opacity(hideCountdown ? 0 : 1)
         }
+        .animation(reduceMotion || centerCaption != "Completed" ? nil : .easeOut(duration: 1.2), value: centerCaption)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilityLabel))
-        .accessibilityValue(Text(timerText))
+        .accessibilityValue(Text(hideCountdown ? "Countdown hidden" : centerCaption))
     }
 }
 

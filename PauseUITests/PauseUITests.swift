@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import AppIntents
 
 final class PauseUITests: XCTestCase {
 
@@ -29,6 +30,44 @@ final class PauseUITests: XCTestCase {
         app.launch()
 
         // Use XCTAssert and related functions to verify your tests produce the correct results.
+    }
+
+    @MainActor
+    func testBreathingRefreshControls() async throws {
+        let app = XCUIApplication()
+        app.launch()
+        let end = app.buttons["End current session"]
+        if end.waitForExistence(timeout: 2) { end.tap() }
+        app.buttons["Sleep Wind Down"].tap()
+        XCTAssertFalse(app.switches["Show breathing words"].exists)
+        let begin = app.buttons["Begin selected session"]
+        if !begin.isHittable { app.swipeUp() }
+        begin.tap()
+        XCTAssertTrue(app.buttons["Pause meditation"].waitForExistence(timeout: 3))
+        app.buttons["Hide countdown"].tap()
+        XCTAssertTrue(app.buttons["Show countdown"].exists)
+        try await Task.sleep(for: .seconds(2))
+        XCTAssertTrue(app.staticTexts["Inhale"].exists || app.staticTexts["Exhale"].exists)
+        let running = XCTAttachment(screenshot: app.screenshot())
+        running.name = "Night breathing session"
+        running.lifetime = .keepAlways
+        add(running)
+        app.buttons["Pause meditation"].tap()
+        XCTAssertTrue(app.buttons["Resume meditation"].exists)
+        app.buttons["Resume meditation"].tap()
+        app.buttons["Show countdown"].tap()
+        XCTAssertTrue(app.buttons["Hide countdown"].exists)
+        end.tap()
+        XCTAssertTrue(app.buttons["Begin selected session"].exists)
+        app.buttons["Focus"].tap()
+        app.buttons["Begin selected session"].tap()
+        try await Task.sleep(for: .seconds(2))
+        let day = XCTAttachment(screenshot: app.screenshot())
+        day.name = "Day breathing session"
+        day.lifetime = .keepAlways
+        add(day)
+        XCTAssertTrue(app.buttons["Pause meditation"].exists)
+        end.tap()
     }
 
     @MainActor

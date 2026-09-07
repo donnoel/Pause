@@ -1,4 +1,5 @@
 import XCTest
+import AppIntents
 @testable import Pause
 
 final class MockTimerEngine: MeditationTimerEngineProtocol {
@@ -100,6 +101,23 @@ final class SessionViewModelConfigurationTests: XCTestCase {
         PauseSessionStore.clear()
         PauseSessionStore.clearCompletedSessionsForTesting()
         super.tearDown()
+    }
+
+    @MainActor
+    func testVisualClockRestoresFreezesAndResumesWithoutRestartingBreath() {
+        let start = Date().addingTimeInterval(-6)
+        PauseSessionStore.save(PauseSessionInfo(isActive: true, startDate: start,
+                                               endDate: start.addingTimeInterval(60), plannedDuration: 60))
+        let viewModel = SessionViewModel(timerEngine: MockTimerEngine(), chimePlayer: MockChimePlayer(),
+                                        backgroundAudio: MockBackgroundAudioController(),
+                                        notificationScheduler: MockNotificationScheduler())
+        XCTAssertEqual(viewModel.breathingElapsed(at: start.addingTimeInterval(8)), 8, accuracy: 0.05)
+        viewModel.togglePause()
+        let frozen = viewModel.breathingElapsed(at: Date())
+        XCTAssertEqual(viewModel.breathingElapsed(at: Date().addingTimeInterval(30)), frozen)
+        viewModel.togglePause()
+        XCTAssertEqual(viewModel.breathingElapsed(at: Date()), frozen, accuracy: 0.05)
+        viewModel.cancel()
     }
 
     @MainActor
@@ -569,5 +587,32 @@ final class RitualPresetTests: XCTestCase {
     func testQuietTimerHasNoGuidedPhaseCue() {
         XCTAssertNil(BreathingStyle.quietTimer.phaseCue(elapsed: 0))
         XCTAssertNil(BreathingStyle.quietTimer.phaseCue(elapsed: 30))
+    }
+}
+
+final class BreathingPhaseTests: XCTestCase {
+    func testBoxBreathHoldsAtBothSizesAndRepeats() throws {
+        let expected: [(Double, String, Double)] = [
+            (0, "Inhale", 0), (2, "Inhale", 0.5), (4, "Hold", 1),
+            (7.9, "Hold", 1), (8, "Exhale", 1), (10, "Exhale", 0.5),
+            (12, "Hold", 0), (15.9, "Hold", 0), (16, "Inhale", 0)
+        ]
+        for (elapsed, cue, size) in expected {
+            let phase = try XCTUnwrap(BreathingStyle.boxBreath.phase(elapsed: elapsed))
+            XCTAssertEqual(phase.cue, cue)
+            XCTAssertEqual(phase.expansion, size, accuracy: 0.0001)
+        }
+    }
+
+    func testExhaleDurationsAndContinuousCycleBoundaries() throws {
+        for (style, midpoint, cycle) in [(BreathingStyle.calmExhale, 7.0, 10.0),
+                                          (.equalBreath, 6.0, 8.0)] {
+            let exhale = try XCTUnwrap(style.phase(elapsed: midpoint))
+            XCTAssertEqual(exhale.cue, "Exhale")
+            XCTAssertEqual(exhale.expansion, 0.5, accuracy: 0.0001)
+            XCTAssertEqual(try XCTUnwrap(style.phase(elapsed: cycle - 0.001)).expansion,
+                           try XCTUnwrap(style.phase(elapsed: cycle)).expansion, accuracy: 0.0001)
+        }
+        XCTAssertNil(BreathingStyle.quietTimer.phase(elapsed: 3))
     }
 }

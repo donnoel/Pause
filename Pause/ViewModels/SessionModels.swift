@@ -50,40 +50,41 @@ enum BreathingStyle: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Lightweight phase cue model. Timing can be refined later.
-    func phaseCue(elapsed: TimeInterval) -> String? {
-        let elapsedSecond = max(0, Int(elapsed.rounded(.down)))
-
-        switch self {
-        case .quietTimer:
-            return nil
-        case .boxBreath:
-            switch elapsedSecond % 16 {
-            case 0...3:
-                return "Inhale"
-            case 4...7:
-                return "Hold"
-            case 8...11:
-                return "Exhale"
-            default:
-                return "Hold"
-            }
-        case .calmExhale:
-            switch elapsedSecond % 10 {
-            case 0...3:
-                return "Inhale"
-            default:
-                return "Exhale"
-            }
-        case .equalBreath:
-            switch elapsedSecond % 8 {
-            case 0...3:
-                return "Inhale"
-            default:
-                return "Exhale"
-            }
-        }
+    struct Phase {
+        let cue: String
+        /// Normalized size: zero is contracted, one is expanded.
+        let expansion: Double
     }
+
+    func phase(elapsed: TimeInterval) -> Phase? {
+        let durations: [(String, Double, Double, Double)]
+        switch self {
+        case .quietTimer: return nil
+        case .boxBreath:
+            durations = [("Inhale", 4, 0, 1), ("Hold", 4, 1, 1),
+                         ("Exhale", 4, 1, 0), ("Hold", 4, 0, 0)]
+        case .calmExhale:
+            durations = [("Inhale", 4, 0, 1), ("Exhale", 6, 1, 0)]
+        case .equalBreath:
+            durations = [("Inhale", 4, 0, 1), ("Exhale", 4, 1, 0)]
+        }
+        let cycle = durations.reduce(0) { $0 + $1.1 }
+        var position = max(0, elapsed).truncatingRemainder(dividingBy: cycle)
+        for (cue, duration, start, end) in durations {
+            if position < duration {
+                let fraction = position / duration
+                let eased = (1 - cos(.pi * fraction)) / 2
+                return Phase(cue: cue, expansion: start + (end - start) * eased)
+            }
+            position -= duration
+        }
+        return nil
+    }
+
+    func phaseCue(elapsed: TimeInterval) -> String? {
+        phase(elapsed: elapsed)?.cue
+    }
+
 }
 
 /// Optional named ritual that maps to duration plus breathing style.
