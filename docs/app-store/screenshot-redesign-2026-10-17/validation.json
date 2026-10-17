@@ -1,0 +1,152 @@
+{
+  "status": "approved",
+  "passed": true,
+  "appleRequirementsCheckedOn": "2026-10-17",
+  "appleRequirementsURL": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/",
+  "count": 10,
+  "exports": [
+    {
+      "file": "iphone/01-start.png",
+      "width": 1320,
+      "height": 2868,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1691084,
+      "sha256": "afd09f39bf6e5ba1511250070237e21eab4d965b13b893b5c0b215d70b4e2576",
+      "source": "raw/iphone-start.png",
+      "sourceSHA256": "fd36903a3cd70c5de1ff8da23fe6f3ca993fe6336f062723d6df6451e934406b"
+    },
+    {
+      "file": "iphone/02-breathing.png",
+      "width": 1320,
+      "height": 2868,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1223428,
+      "sha256": "ae78f786cca933295a8026a9a0ce62eaf0b0a5dbf45aab7d64fba0c3ba98d7cc",
+      "source": "raw/iphone-breathing.png",
+      "sourceSHA256": "862ff4ffad7ebade8cf8d17a513294fa5fe19562d7fd3954ee8361eb1bc2816c"
+    },
+    {
+      "file": "iphone/03-night.png",
+      "width": 1320,
+      "height": 2868,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1156754,
+      "sha256": "318ffd77755e29144eb28925a8748cbf4759e4d33b3294bd712d51e59c39cfba",
+      "source": "raw/iphone-night.png",
+      "sourceSHA256": "c07e91a592c4170df4607b09e9f22fa14e609b459606b04004127c07302f9673"
+    },
+    {
+      "file": "iphone/04-reflection.png",
+      "width": 1320,
+      "height": 2868,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1425252,
+      "sha256": "0945cda5bea0cd2ea8d37f95f78b31760ab0cc54613c56800c582dabfe60727f",
+      "source": "raw/iphone-reflection.png",
+      "sourceSHA256": "4319031cc11d14b3fc17c0e93e28530c4ef1d8ad46eb2513650d4df489c94c51"
+    },
+    {
+      "file": "iphone/05-insights.png",
+      "width": 1320,
+      "height": 2868,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1110717,
+      "sha256": "5591eb5cadd1c6aab37317b1e44f7875c9e2ce81a0e82243aec5b09c027227d2",
+      "source": "raw/iphone-insights.png",
+      "sourceSHA256": "849c306b194e1f75ef4c4dec4d76e4c5c99bd557db9660c82b28a15aee2943fa"
+    },
+    {
+      "file": "ipad/01-start.png",
+      "width": 2064,
+      "height": 2752,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1569148,
+      "sha256": "163e3d9a617f19df8d407938e301493c3cbc6629a12167444dc5bf4b1c159e17",
+      "source": "raw/ipad-start.png",
+      "sourceSHA256": "d60f5958c8d64b8ce18ed52b4b310aace9256b5b1e38f43d4e6f79f01ec9b89a"
+    },
+    {
+      "file": "ipad/02-breathing.png",
+      "width": 2064,
+      "height": 2752,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1590872,
+      "sha256": "3f7a6141fc850c8cab1175635dfbf80015d3374de0a66d97b88a1d8f6b1f9a73",
+      "source": "raw/ipad-breathing.png",
+      "sourceSHA256": "ce853e446d74d1581218432cb6a39ea6146df7c01d0d62dcf8d07e2ead8d3ba1"
+    },
+    {
+      "file": "ipad/03-night.png",
+      "width": 2064,
+      "height": 2752,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1454886,
+      "sha256": "2ed4cf5f0d38fc922986377391ef161e0ed479b33de318d6847d21954c2fa6d7",
+      "source": "raw/ipad-night.png",
+      "sourceSHA256": "b22df8a8344cafdc1dcd5d6599860d18782be8986f49efdd62272f0ee966c800"
+    },
+    {
+      "file": "ipad/04-reflection.png",
+      "width": 2064,
+      "height": 2752,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1916835,
+      "sha256": "2c8c5fd1969cf41305c323587b3917a67bccfdee4004850c013c74395bc49ec5",
+      "source": "raw/ipad-reflection.png",
+      "sourceSHA256": "ad5c2e156539f249c4bd5e6a3452cae7b3b021261fed13e0681cc2687de9948f"
+    },
+    {
+      "file": "ipad/05-insights.png",
+      "width": 2064,
+      "height": 2752,
+      "bitDepth": 8,
+      "colorType": "RGB",
+      "hasAlpha": false,
+      "colorProfile": "sRGB IEC61966-2.1",
+      "bytes": 1119160,
+      "sha256": "8dc1d7a18e7a4f4aa662afa63bfebd616761e40d763a074e3068203ec932939d",
+      "source": "raw/ipad-insights.png",
+      "sourceSHA256": "105d4ceb5dc71e6d343c5d4bbd66c1ac1374ec27bb6202937a81668e92823d78"
+    }
+  ],
+  "descriptionCharacters": 1331,
+  "descriptionSHA256": "ec8923a71f34905463b4c509294d7e6e1a23ade21b9a081bbea7a341a5baa073",
+  "manifestSHA256": "1ef26f22f83a0728b4f101ac28ea6fa68aa3fb349118b0674ba2d5410a911b88",
+  "contactSheets": [
+    {
+      "file": "iphone-sequence.png",
+      "sha256": "48784858b0fd941ecd64a38eb66ac06f42888b7bd696b4ffb804e68c0b6ec5bd"
+    },
+    {
+      "file": "ipad-sequence.png",
+      "sha256": "ca05e932861b7c12bc14154b8a79789777a4103531303a2c2b054788fee1e578"
+    }
+  ]
+}

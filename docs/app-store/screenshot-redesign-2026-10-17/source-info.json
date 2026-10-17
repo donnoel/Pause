@@ -1,0 +1,112 @@
+{
+  "app": "Pause for a Moment",
+  "appStoreConnectId": "6755661954",
+  "bundleIdentifier": "dn.Pause",
+  "captureVersion": "2.2",
+  "captureBuild": "3",
+  "captureSourceCommit": "cedc1d10ebabb179dcbf745e02394870690bd3a2",
+  "configuration": "Debug",
+  "frameworks": "SwiftUI; genuine runtime captures without source changes or fixtures",
+  "captureMethod": "XcodeBuildMCP runtime UI snapshots and semantic taps; full-resolution xcrun simctl io screenshot PNGs",
+  "captureDate": "2026-10-17",
+  "platforms": {
+    "iphone": {
+      "device": "iPhone 18 Pro Max",
+      "udid": "25A8042B-FD84-4C9C-A5E5-D680A2FCBE2C",
+      "os": "iOS 27.0",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "breathingSession": "Focus / Equal Breath; five minutes completed normally",
+      "history": "one actual completed five-minute session"
+    },
+    "ipad": {
+      "device": "iPad Pro 13-inch (M5)",
+      "udid": "835D950A-DD3D-4487-B726-F78AC47CB1C1",
+      "os": "iOS 27.0",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "breathingSession": "Reset / Calm Exhale; three minutes completed normally",
+      "history": "one actual completed three-minute session"
+    }
+  },
+  "nightCapture": "Sleep Wind Down, Hide countdown; both temporary sessions ended after capture",
+  "setupCapture": "Reset / three minutes / Calm Exhale",
+  "sourceBinarySHA256": "785e20c9c281744a75eb5ec4a879a309fd72103719a9540cf09324bc8bf17158",
+  "sourceFiles": [
+    {
+      "file": "Pause/App/AppCoordinator.swift",
+      "sha256": "1058059c82d6006ae4b7ff0cd9f80c4647e1682746dd1537889c4396f0b0708d"
+    },
+    {
+      "file": "Pause/App/PauseApp.swift",
+      "sha256": "ae050b470263ab664d65e6c3229d385f139dc38c6997f3d8ee8e81e59d5e3c01"
+    },
+    {
+      "file": "Pause/Componets/AudioChimePlayer.swift",
+      "sha256": "2113e749b146fe15a8988f127683baafff9b34d1570192d465d4ac6a6d056877"
+    },
+    {
+      "file": "Pause/Componets/BackgroundAudioManager.swift",
+      "sha256": "2e7b3433173e7506b685a5b8304a063924dfc47d1e1e0f76900bb422560cbfb5"
+    },
+    {
+      "file": "Pause/Componets/Haptics.swift",
+      "sha256": "16b8656ae9463e8477abc2667b37e2326841cc52074acff270673d7242bc6b41"
+    },
+    {
+      "file": "Pause/Componets/MeditationDesignSystem.swift",
+      "sha256": "bccc1f493f911ae9e66497c725eeaa33554fa72172fa43874b838945b55b23d2"
+    },
+    {
+      "file": "Pause/Componets/MeditationTimerEngine.swift",
+      "sha256": "f65dcb08e992cef76674e6d9881f6ece487c1d1a5ac4cd361242873a62d4895f"
+    },
+    {
+      "file": "Pause/Componets/PauseSessionStore.swift",
+      "sha256": "f3b83eb86a7f5ec6aadc4c680a98f930f7059e5a1949e183e8822c0e3cb33e2a"
+    },
+    {
+      "file": "Pause/Componets/SessionCoordinator.swift",
+      "sha256": "34635d77262d4b874c1d7bc8f18bd5333b0dfa5a4a492685124629e318dbd433"
+    },
+    {
+      "file": "Pause/Componets/SessionNotificationScheduler.swift",
+      "sha256": "39382c1d198264404f337a4698b7ea176b954c1bdf214afe80a3c74b16229817"
+    },
+    {
+      "file": "Pause/ViewModels/SessionModels.swift",
+      "sha256": "0c5687f6b108e087f3fba5899a4ad3f308b3c99d60c51c51d5ae526f306f3ddf"
+    },
+    {
+      "file": "Pause/ViewModels/SessionViewModel.swift",
+      "sha256": "d14922ef84f3a69dbf8609ddcbaaf5812a3126c11abd6065458c8108b47925c1"
+    },
+    {
+      "file": "Pause/Views/SessionView.swift",
+      "sha256": "1b9ddc39c959695dc9b35470c1dab8c643e8f67ebf673aea48161e155ca4cd06"
+    },
+    {
+      "file": "PauseWidget/PauseWidget.swift",
+      "sha256": "5dc09f24e68161a94a1b35599aaa1a8f0ed32beb41a142d7f88a300b8b750f17"
+    },
+    {
+      "file": "PauseWidget/PauseWidgetBundle.swift",
+      "sha256": "1dfb506cf3e7e9285bd70ffa90031ebf439187ef1d03b038c399e015cc648557"
+    }
+  ],
+  "appStoreBaseline": {
+    "observedDate": "2026-10-17",
+    "version": "2.2",
+    "build": "3",
+    "state": "Ready for Distribution",
+    "localization": "en-US",
+    "iphoneMaster": "4 large Dynamic Island images inherited by medium display",
+    "ipadMaster": "1 image in 13-inch slot",
+    "pendingVersion": null
+  },
+  "referencePrinciples": "Driftly: genuine imagery, restrained typography, specific captions, deliberate sequence. Palette and native layouts belong to Pause."
+}

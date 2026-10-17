@@ -1,0 +1,232 @@
+[
+  {
+    "caption" : "Choose a ritual. Begin when you're ready.",
+    "drawRect" : {
+      "height" : 2331,
+      "width" : 1188,
+      "x" : 66,
+      "y" : 122
+    },
+    "file" : "iphone\/01-start.png",
+    "height" : 2868,
+    "platform" : "iphone",
+    "source" : "raw\/iphone-start.png",
+    "sourceCrop" : {
+      "height" : 2590,
+      "width" : 1320,
+      "x" : 0,
+      "y" : 145
+    },
+    "status" : "approved",
+    "title" : "Take a breathing break.",
+    "uniformScale" : 0.90000000000000002,
+    "width" : 1320
+  },
+  {
+    "caption" : "A gentle pulse. Clear cues for each phase.",
+    "drawRect" : {
+      "height" : 2007,
+      "width" : 1188,
+      "x" : 66,
+      "y" : 446
+    },
+    "file" : "iphone\/02-breathing.png",
+    "height" : 2868,
+    "platform" : "iphone",
+    "source" : "raw\/iphone-breathing.png",
+    "sourceCrop" : {
+      "height" : 2230,
+      "width" : 1320,
+      "x" : 0,
+      "y" : 440
+    },
+    "status" : "approved",
+    "title" : "Follow your breath.",
+    "uniformScale" : 0.90000000000000002,
+    "width" : 1320
+  },
+  {
+    "caption" : "A darker session. The option to hide the clock.",
+    "drawRect" : {
+      "height" : 2007,
+      "width" : 1188,
+      "x" : 66,
+      "y" : 446
+    },
+    "file" : "iphone\/03-night.png",
+    "height" : 2868,
+    "platform" : "iphone",
+    "source" : "raw\/iphone-night.png",
+    "sourceCrop" : {
+      "height" : 2230,
+      "width" : 1320,
+      "x" : 0,
+      "y" : 440
+    },
+    "status" : "approved",
+    "title" : "Let the day wind down.",
+    "uniformScale" : 0.90000000000000002,
+    "width" : 1320
+  },
+  {
+    "caption" : "Calm, Okay, or Restless. A moment to reflect.",
+    "drawRect" : {
+      "height" : 2331,
+      "width" : 1188,
+      "x" : 66,
+      "y" : 122
+    },
+    "file" : "iphone\/04-reflection.png",
+    "height" : 2868,
+    "platform" : "iphone",
+    "source" : "raw\/iphone-reflection.png",
+    "sourceCrop" : {
+      "height" : 2590,
+      "width" : 1320,
+      "x" : 0,
+      "y" : 145
+    },
+    "status" : "approved",
+    "title" : "Finish with a check-in.",
+    "uniformScale" : 0.90000000000000002,
+    "width" : 1320
+  },
+  {
+    "caption" : "Completed sessions, averages, and a calendar.",
+    "drawRect" : {
+      "height" : 2331,
+      "width" : 1188,
+      "x" : 66,
+      "y" : 122
+    },
+    "file" : "iphone\/05-insights.png",
+    "height" : 2868,
+    "platform" : "iphone",
+    "source" : "raw\/iphone-insights.png",
+    "sourceCrop" : {
+      "height" : 2590,
+      "width" : 1320,
+      "x" : 0,
+      "y" : 145
+    },
+    "status" : "approved",
+    "title" : "See your rhythm.",
+    "uniformScale" : 0.90000000000000002,
+    "width" : 1320
+  },
+  {
+    "caption" : "Choose a ritual. Begin when you're ready.",
+    "drawRect" : {
+      "height" : 2035.5748373101953,
+      "width" : 1840,
+      "x" : 112,
+      "y" : 246.42516268980467
+    },
+    "file" : "ipad\/01-start.png",
+    "height" : 2752,
+    "platform" : "ipad",
+    "source" : "raw\/ipad-start.png",
+    "sourceCrop" : {
+      "height" : 2040,
+      "width" : 1844,
+      "x" : 110,
+      "y" : 80
+    },
+    "status" : "approved",
+    "title" : "Take a breathing break.",
+    "uniformScale" : 0.99783080260303691,
+    "width" : 2064
+  },
+  {
+    "caption" : "A gentle pulse. Clear cues for each phase.",
+    "drawRect" : {
+      "height" : 2155.3145336225598,
+      "width" : 1840,
+      "x" : 112,
+      "y" : 126.68546637744021
+    },
+    "file" : "ipad\/02-breathing.png",
+    "height" : 2752,
+    "platform" : "ipad",
+    "source" : "raw\/ipad-breathing.png",
+    "sourceCrop" : {
+      "height" : 2160,
+      "width" : 1844,
+      "x" : 110,
+      "y" : 270
+    },
+    "status" : "approved",
+    "title" : "Follow your breath.",
+    "uniformScale" : 0.99783080260303691,
+    "width" : 2064
+  },
+  {
+    "caption" : "A darker session. The option to hide the clock.",
+    "drawRect" : {
+      "height" : 2155.3145336225598,
+      "width" : 1840,
+      "x" : 112,
+      "y" : 126.68546637744021
+    },
+    "file" : "ipad\/03-night.png",
+    "height" : 2752,
+    "platform" : "ipad",
+    "source" : "raw\/ipad-night.png",
+    "sourceCrop" : {
+      "height" : 2160,
+      "width" : 1844,
+      "x" : 110,
+      "y" : 270
+    },
+    "status" : "approved",
+    "title" : "Let the day wind down.",
+    "uniformScale" : 0.99783080260303691,
+    "width" : 2064
+  },
+  {
+    "caption" : "Calm, Okay, or Restless. A moment to reflect.",
+    "drawRect" : {
+      "height" : 2202,
+      "width" : 1765.4295652173912,
+      "x" : 149.2852173913044,
+      "y" : 80
+    },
+    "file" : "ipad\/04-reflection.png",
+    "height" : 2752,
+    "platform" : "ipad",
+    "source" : "raw\/ipad-reflection.png",
+    "sourceCrop" : {
+      "height" : 2300,
+      "width" : 1844,
+      "x" : 110,
+      "y" : 80
+    },
+    "status" : "approved",
+    "title" : "Finish with a check-in.",
+    "uniformScale" : 0.95739130434782604,
+    "width" : 2064
+  },
+  {
+    "caption" : "Completed sessions, averages, and a calendar.",
+    "drawRect" : {
+      "height" : 2202,
+      "width" : 1442.6896551724137,
+      "x" : 310.65517241379314,
+      "y" : 80
+    },
+    "file" : "ipad\/05-insights.png",
+    "height" : 2752,
+    "platform" : "ipad",
+    "source" : "raw\/ipad-insights.png",
+    "sourceCrop" : {
+      "height" : 1740,
+      "width" : 1140,
+      "x" : 460,
+      "y" : 532
+    },
+    "status" : "approved",
+    "title" : "See your rhythm.",
+    "uniformScale" : 1.2655172413793103,
+    "width" : 2064
+  }
+]

@@ -1,0 +1,75 @@
+{
+  "verifiedAt": "2026-10-17T16:12:36.832261+00:00",
+  "app": "Pause for a Moment",
+  "appID": "6755661954",
+  "platform": "IOS",
+  "localizations": [
+    "en-US"
+  ],
+  "version": "2.2.1",
+  "build": "4",
+  "buildID": "b5f590a5-ed90-4d91-a35e-fc99d928a160",
+  "status": "Waiting for Review",
+  "submissionID": "26bc7e55-7f97-40e8-9601-cc833e1d820d",
+  "submissionURL": "https://appstoreconnect.apple.com/apps/6755661954/distribution/reviewsubmissions/details/26bc7e55-7f97-40e8-9601-cc833e1d820d",
+  "submittedAtLocal": "2026-10-17 09:11 America/Los_Angeles",
+  "submittedItems": 1,
+  "screenshots": {
+    "iphone": {
+      "count": 5,
+      "dimensions": [
+        1320,
+        2868
+      ],
+      "master": "iPhone with Dynamic Island large display",
+      "inheritance": "required medium display uses existing master assets"
+    },
+    "ipad": {
+      "count": 5,
+      "dimensions": [
+        2064,
+        2752
+      ],
+      "master": "iPad 13-inch"
+    }
+  },
+  "sequence": [
+    "01-start.png",
+    "02-breathing.png",
+    "03-night.png",
+    "04-reflection.png",
+    "05-insights.png"
+  ],
+  "descriptionFile": "description-en-US.txt",
+  "descriptionCharacters": 1331,
+  "previousPublishedVersion": "2.2 (3)",
+  "releaseReason": "Published 2.2 (3) was no longer editable. An approved new 2.2.1 (4) release was required; app implementation is unchanged.",
+  "preserved": [
+    "English (U.S.) localization",
+    "screenshot inheritance",
+    "zero existing previews",
+    "What\u2019s New from 2.2",
+    "promotional text",
+    "keywords",
+    "support and marketing URLs",
+    "review contact and sign-in information",
+    "privacy",
+    "age rating",
+    "pricing",
+    "availability",
+    "automatic release after approval",
+    "immediate automatic updates",
+    "existing ratings"
+  ],
+  "addForReviewCompleted": true,
+  "finalSubmitForReviewCompleted": true,
+  "agreementsAcceptedByAgent": false,
+  "automationStatus": "PAUSED",
+  "reviewMonitorCreated": false,
+  "archive": "/Users/donnoel/Library/Developer/Xcode/Archives/2026-10-17/Pause-2.2.1-4.xcarchive",
+  "archivedInputSHA256File": "evidence/source-sha256.json",
+  "archivedInputCount": 84,
+  "archivedInputsMatchWorkingTree": true,
+  "approvedBytesUnchanged": true,
+  "proof": "evidence/waiting-for-review.png"
+}

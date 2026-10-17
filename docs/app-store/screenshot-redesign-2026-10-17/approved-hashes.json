@@ -1,0 +1,15 @@
+{
+  "exports": {
+    "iphone/01-start.png": "afd09f39bf6e5ba1511250070237e21eab4d965b13b893b5c0b215d70b4e2576",
+    "iphone/02-breathing.png": "ae78f786cca933295a8026a9a0ce62eaf0b0a5dbf45aab7d64fba0c3ba98d7cc",
+    "iphone/03-night.png": "318ffd77755e29144eb28925a8748cbf4759e4d33b3294bd712d51e59c39cfba",
+    "iphone/04-reflection.png": "0945cda5bea0cd2ea8d37f95f78b31760ab0cc54613c56800c582dabfe60727f",
+    "iphone/05-insights.png": "5591eb5cadd1c6aab37317b1e44f7875c9e2ce81a0e82243aec5b09c027227d2",
+    "ipad/01-start.png": "163e3d9a617f19df8d407938e301493c3cbc6629a12167444dc5bf4b1c159e17",
+    "ipad/02-breathing.png": "3f7a6141fc850c8cab1175635dfbf80015d3374de0a66d97b88a1d8f6b1f9a73",
+    "ipad/03-night.png": "2ed4cf5f0d38fc922986377391ef161e0ed479b33de318d6847d21954c2fa6d7",
+    "ipad/04-reflection.png": "2c8c5fd1969cf41305c323587b3917a67bccfdee4004850c013c74395bc49ec5",
+    "ipad/05-insights.png": "8dc1d7a18e7a4f4aa662afa63bfebd616761e40d763a074e3068203ec932939d"
+  },
+  "descriptionSHA256": "ec8923a71f34905463b4c509294d7e6e1a23ade21b9a081bbea7a341a5baa073"
+}

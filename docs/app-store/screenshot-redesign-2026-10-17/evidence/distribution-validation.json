@@ -1,0 +1,53 @@
+[
+  {
+    "bundleId": "dn.Pause",
+    "version": "2.2.1",
+    "build": "4",
+    "entitlements": {
+      "application-identifier": "H7LG8SK72M.dn.Pause",
+      "aps-environment": "production",
+      "beta-reports-active": true,
+      "com.apple.developer.team-identifier": "H7LG8SK72M",
+      "com.apple.developer.ubiquity-kvstore-identifier": "H7LG8SK72M.dn.Pause",
+      "com.apple.security.application-groups": [
+        "group.dn.pause"
+      ],
+      "get-task-allow": false
+    },
+    "privacy": {
+      "NSPrivacyAccessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "CA92.1",
+            "1C8F.1"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "bundleId": "dn.Pause.PauseWidget",
+    "version": "2.2.1",
+    "build": "4",
+    "entitlements": {
+      "application-identifier": "H7LG8SK72M.dn.Pause.PauseWidget",
+      "beta-reports-active": true,
+      "com.apple.developer.team-identifier": "H7LG8SK72M",
+      "com.apple.security.application-groups": [
+        "group.dn.pause"
+      ],
+      "get-task-allow": false
+    },
+    "privacy": {
+      "NSPrivacyAccessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "1C8F.1"
+          ]
+        }
+      ]
+    }
+  }
+]
