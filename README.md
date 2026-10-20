@@ -1,16 +1,17 @@
-# ✨ **Pause**
+# **Pause**
 
 ### *Breathe deeper. Slow down. Return to yourself.*
 
 <p align="center">
-  <img src="https://img.shields.io/badge/SwiftUI-6.0-orange?logo=swift">
-  <img src="https://img.shields.io/badge/Platform-iOS_|_iPadOS-blue">
-  <img src="https://img.shields.io/badge/License-MIT-green">
+  <img src="https://img.shields.io/badge/Built%20with-SwiftUI-orange?logo=swift&logoColor=white" alt="Built with: SwiftUI">
+  <img src="https://img.shields.io/badge/Platform-iOS_|_iPadOS-blue" alt="Platform: iOS | iPadOS">
 </p>
 
-⸻
+---
 
-🌿 Pause – A Minimal, Intentional Breathing & Mindfulness Timer
+## ✨ Overview
+
+<a id="overview"></a>
 
 A clean, distraction-free meditation experience for iOS and iPadOS.
 
@@ -18,18 +19,28 @@ Pause is a beautifully simple breathing & meditation timer built entirely in Swi
 
 This project includes the full iOS app, accessory Lock Screen widgets, and a lightweight audio system for gentle chimes and session guidance.
 
-⸻
+## 💎 Core Features
 
-✨ Features
+| Feature | What it does |
+| --- | --- |
+| **Mindful sessions** | Choose a duration, breathing style, or ritual and deliberately begin. |
+| **Gentle guidance** | Follow breathing phases and optional session chimes. |
+| **Session insights** | Review completed sessions, reflections, and iCloud-backed insights. |
+| **Lock Screen widget** | Glance at the shared session state on accessory widgets. |
+
+<details>
+<summary>Feature details and controls</summary>
+
+<a id="core-features"></a>
 
 🕊 Minimal Breathing Sessions
 
 Pause offers preset session lengths — 5, 10, 15, and 20 minutes — powered by `SessionDurationPreset`. Each session is managed by `SessionViewModel`, which tracks:
-	•	elapsed time
-	•	remaining time
-	•	start / pause / resume / end
-	•	session completion
-	•	persistent state during app backgrounding
+- elapsed time
+- remaining time
+- start / pause / resume / end
+- session completion
+- persistent state during app backgrounding
 
 Preset and custom duration controls now configure the upcoming session only. Starting is always a deliberate tap on the primary **Begin** action.
 
@@ -42,9 +53,9 @@ After a fully completed session, you can optionally add a one-tap reflection: **
 🔔 Gentle Audio Chimes
 
 A lightweight AudioChimePlayer wraps AVAudioPlayer to deliver soft, unobtrusive tones for:
-	•	session start
-	•	optional interval chimes
-	•	session end
+- session start
+- optional interval chimes
+- session end
 
 The audio system includes graceful error handling for missing or unsupported audio files during normal app use.
 Halfway and completion chimes are scheduled as local notifications with the original chime sound so they can fire while the app is backgrounded or the Lock Screen is active without declaring background audio mode.
@@ -52,22 +63,22 @@ Halfway and completion chimes are scheduled as local notifications with the orig
 📊 Session Stats
 
 Pause includes a Stats sheet with:
-	•	a calendar that marks days with fully completed sessions
-	•	your usual meditation time (based on completed sessions)
-	•	your last completed meditation
-	•	average completed session length
-	•	iCloud sync for completed-session insights across devices on the same Apple ID
+- a calendar that marks days with fully completed sessions
+- your usual meditation time (based on completed sessions)
+- your last completed meditation
+- average completed session length
+- iCloud sync for completed-session insights across devices on the same Apple ID
 
 Partial or cancelled sessions are not recorded in the calendar or summary stats.
 
 🏞 Custom SwiftUI Experience
 
 Pause uses clean, modern SwiftUI views and a lightweight design system across:
-	•	a single-screen session flow (idle, running/paused, completed)
-	•	configuration cards for ritual, duration, and breathing style
-	•	a breathing orb that expands on inhale, stays still during holds, and contracts on exhale; the smaller countdown stays steady
-	•	a calm completion reflection step
-	•	a card-based Insights sheet
+- a single-screen session flow (idle, running/paused, completed)
+- configuration cards for ritual, duration, and breathing style
+- a breathing orb that expands on inhale, stays still during holds, and contracts on exhale; the smaller countdown stays steady
+- a calm completion reflection step
+- a card-based Insights sheet
 
 Active sessions use a centered layout with quieter controls. Guided breathing always shows phase words alongside the pulsing circle; Reduce Motion keeps the words and uses a still orb. VoiceOver exposes the current breathing phase.
 
@@ -78,11 +89,11 @@ Everything is intentionally minimal and soothing — nothing steals focus.
 📱 Lock Screen Widget
 
 The included Pause widget keeps session state glanceable and calm on accessory surfaces:
-	•	ready state with a minimal “Ready to begin” cue
-	•	active-session remaining time countdown when relevant
-	•	accessory families: circular, rectangular, and inline
-	•	shared state via PauseSessionStore (app-group compatible)
-	•	WidgetKit timeline reload support
+- ready state with a minimal “Ready to begin” cue
+- active-session remaining time countdown when relevant
+- accessory families: circular, rectangular, and inline
+- shared state via PauseSessionStore (app-group compatible)
+- WidgetKit timeline reload support
 
 ⚙️ Settings App Version Row
 
@@ -92,10 +103,54 @@ In iOS/iPadOS Settings (`Settings > Apps > Pause`), the app shows a single non-e
 
 Pause does not currently ship a Live Activity. Template Live Activity scaffolding was removed until a production-ready ActivityKit lifecycle is implemented in the app target.
 
-📦 Clean App Architecture
+</details>
+
+---
+
+## 🚀 Getting Started
+
+<a id="getting-started"></a>
+
+Clone the repo:
+
+```sh
+git clone https://github.com/donnoel/Pause.git
+cd Pause
+open Pause.xcodeproj
+```
+
+Make sure you have:
+- Xcode with the iOS 26.1 SDK or newer
+- an iOS Simulator runtime installed
+- A team signing identity for running on a device
+
+You can run Pause in the simulator, but sound playback and background behavior work best on a physical device.
+
+<a id="tests"></a>
+
+### Tests
+
+The project includes unit tests for:
+- session timing behavior
+- state transitions
+- persistence logic via PauseSessionStore
+
+Run tests via:
+
+⌘ + U
+
+## 🧠 How It Works
+
+<details>
+<summary>Architecture and component reference</summary>
+
+<a id="architecture"></a>
+
+### Architecture
 
 Pause uses a deliberately simple architecture:
 
+```text
 PauseApp.swift
 ├── AppCoordinator.swift            # High-level flow
 ├── Componets/
@@ -112,52 +167,40 @@ PauseApp.swift
 │   └── BackgroundAudioManager.swift# Background-audio compatibility shim
 └── Views/
     └── SessionView.swift           # Main session + insights surfaces
+```
 
 The codebase avoids unnecessary complexity, making it approachable and ideal for learning modern SwiftUI patterns.
 
-⌚ Background-Safe Timer Handling
+<a id="background-safe-timer-handling"></a>
+
+### Background-Safe Timer Handling
 
 MeditationTimerEngine drives foreground updates while the app is active, PauseSessionStore preserves session dates so timing and widgets restore cleanly after backgrounding, and SessionNotificationScheduler schedules halfway/completion chime notifications without enabling background audio mode.
 
-⸻
+<a id="built-with"></a>
 
-🧩 Technologies Used
-	•	Swift 5 / SwiftUI
-	•	Combine
-	•	AVFoundation for audio
-	•	WidgetKit
-	•	App Groups for shared storage
-	•	NSUbiquitousKeyValueStore for Insights sync
-	•	Xcode 17+
-	•	Clean MVVM-ish architecture
+### Built With
 
-⸻
+- Swift 5 / SwiftUI
+- Combine
+- AVFoundation for audio
+- WidgetKit
+- App Groups for shared storage
+- NSUbiquitousKeyValueStore for Insights sync
+- Xcode with the iOS 26.1 SDK or newer
+- Clean MVVM-ish architecture
 
-🚀 Getting Started
+<a id="core-components"></a>
 
-Clone the repo:
-
-git clone https://github.com/yourusername/Pause.git
-open Pause.xcodeproj
-
-Make sure you have:
-	•	Xcode 17 or newer
-	•	an iOS Simulator runtime installed
-	•	A team signing identity for running on a device
-
-You can run Pause in the simulator, but sound playback and background behavior work best on a physical device.
-
-⸻
-
-🧱 App Structure Overview
+### Core Components
 
 SessionViewModel
 
 The heart of Pause. Tracks:
-	•	session duration
-	•	state transitions (idle → running → paused → completed)
-	•	timer lifecycle
-	•	persisted session restoration for background-safe timing
+- session duration
+- state transitions (idle → running → paused → completed)
+- timer lifecycle
+- persisted session restoration for background-safe timing
 
 MeditationTimerEngine
 
@@ -170,53 +213,54 @@ Handles chime playback and formatting. Clean, compact, safe.
 PauseSessionStore
 
 Shared container used by both the app and the widget. It exposes:
-	•	remaining time
-	•	session state
-	•	triggers widget timeline reloads
+- remaining time
+- session state
+- triggers widget timeline reloads
 
-⸻
+<a id="design-philosophy"></a>
 
-🎨 Design Philosophy
+### Design Philosophy
 
 Pause tries to feel like a breath of fresh air:
-	•	Soft tonal accent colors
-	•	Minimal screen elements
-	•	Clear, approachable typography
-	•	No clutter, no gamification, no noise
-	•	Just tap → breathe → finish
+- Soft tonal accent colors
+- Minimal screen elements
+- Clear, approachable typography
+- No clutter, no gamification, no noise
+- Just tap → breathe → finish
 
 It’s a meditation timer that respects your attention.
 
-⸻
+</details>
 
-🧪 Tests Included
+## 🔒 Data and Privacy
 
-The project includes unit tests for:
-	•	session timing behavior
-	•	state transitions
-	•	persistence logic via PauseSessionStore
+Session dates are stored locally through `PauseSessionStore` for restoration and
+widgets. Completed-session Insights synchronize through iCloud key-value storage.
+Halfway and completion chimes use local notifications without declaring background
+audio mode.
 
-Run tests via:
+## 📚 Documentation
 
-⌘ + U
+<a id="contributing"></a>
 
-
-⸻
-
-🤝 Contributing
+### Contributing
 
 Pull requests are welcome. If you’d like to improve animations, add additional breathing modes, or enhance widget functionality, open an issue and let’s talk.
 
-⸻
+- [Repository guidance](AGENTS.md)
+- [Project guide](AGENTS.project.md)
 
-🙏 Credits
+---
+
+## 🤝 Credits
+
+<a id="credits"></a>
 
 Built with care by **Don Noel** and Codex collaboration.
 
+<a id="final-note"></a>
 
-🌟 Final Note
+### Final Note
 
 Pause is intentionally small — a tiny pocket of calm in a noisy world.
 If this project inspires you, improves your day, or teaches you something about SwiftUI architecture, that makes it all worth it.
-
-⸻
