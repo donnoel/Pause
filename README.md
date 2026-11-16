@@ -239,6 +239,10 @@ widgets. Completed-session Insights synchronize through iCloud key-value storage
 Halfway and completion chimes use local notifications without declaring background
 audio mode.
 
+## Work tracking
+
+[GitHub Issues](https://github.com/donnoel/Pause/issues) is the authoritative place for open work, priorities, and ownership. Documentation describes the product and preserves reference/history; it is not a separate backlog. Check existing and closed issues before adding follow-ups. Optional ideas are not implementation commitments.
+
 ## 📚 Documentation
 
 <a id="contributing"></a>
