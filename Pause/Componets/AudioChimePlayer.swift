@@ -16,9 +16,12 @@ protocol AudioChimePlaying {
 
 /// Concrete implementation that prefers a bundled `chime.caf` and falls back
 /// to a built-in system sound if the bundled file is unavailable.
-final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDelegate {
+// The private serial queue owns every AVAudioPlayer and audio-session operation,
+// including delegate cleanup. No mutable playback state crosses that boundary.
+nonisolated final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDelegate, @unchecked Sendable {
 
     private var audioPlayer: AVAudioPlayer?
+    private let audioQueue = DispatchQueue(label: "dn.Pause.chimes.audio")
 
     // If you ever change the file name/extension, just update these.
     private let fileName = "chime"
@@ -30,7 +33,7 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDe
     private let fallbackSystemSoundID: SystemSoundID = 1005
 
     func play(chimeType: ChimeType) {
-        playBell()
+        audioQueue.async { [self] in playBell() }
     }
 
     private func playBell() {
@@ -44,13 +47,18 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDe
 
         do {
             try configureAudioSession()
-
             let player = try AVAudioPlayer(contentsOf: url)
             player.delegate = self
             player.volume = chimeVolume
             player.prepareToPlay()
             player.play()
             audioPlayer = player
+            // A serial dispatch worker has no persistent run loop. Also schedule
+            // cleanup so session deactivation never depends on delegate delivery.
+            audioQueue.asyncAfter(deadline: .now() + player.duration + 0.1) { [weak self, weak player] in
+                guard let self, let player else { return }
+                self.finishPlayback(player)
+            }
         } catch {
             #if DEBUG
             print("⚠️ SystemAudioChimePlayer: Failed to play \(fileName).\(fileExtension): \(error). Falling back to system sound.")
@@ -70,13 +78,20 @@ final class SystemAudioChimePlayer: NSObject, AudioChimePlaying, AVAudioPlayerDe
     }
 
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        audioPlayer = nil
-        deactivateAudioSessionIfPossible()
+        finishPlayback(player)
     }
 
     func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
-        audioPlayer = nil
-        deactivateAudioSessionIfPossible()
+        finishPlayback(player)
+    }
+
+    private func finishPlayback(_ player: AVAudioPlayer) {
+        let identifier = ObjectIdentifier(player)
+        audioQueue.async { [self] in
+            guard let current = audioPlayer, ObjectIdentifier(current) == identifier else { return }
+            audioPlayer = nil
+            deactivateAudioSessionIfPossible()
+        }
     }
 
     private func deactivateAudioSessionIfPossible() {

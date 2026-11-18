@@ -48,7 +48,7 @@ Pause also supports selectable breathing styles: **Quiet Timer**, **Box Breath**
 
 Optional ritual presets are available to quickly configure both duration and breathing style: **Reset**, **Focus**, **Unwind**, and **Sleep Wind Down**.
 
-After a fully completed session, you can optionally add a one-tap reflection: **Calm**, **Okay**, or **Restless**.
+After a fully completed session, you can optionally add a one-tap reflection: **Calm**, **Okay**, or **Restless**. Your choice is saved with that session and syncs with completed-session history through iCloud. Existing sessions remain available without an invented reflection.
 
 🔔 Gentle Audio Chimes
 
@@ -63,7 +63,7 @@ Halfway and completion chimes are scheduled as local notifications with the orig
 📊 Session Stats
 
 Pause includes a Stats sheet with:
-- a calendar that marks days with fully completed sessions
+- a calendar where you can select a day and review its fully completed sessions, durations, and optional reflections
 - your usual meditation time (based on completed sessions)
 - your last completed meditation
 - average completed session length

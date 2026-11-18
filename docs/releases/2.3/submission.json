@@ -1,0 +1,40 @@
+{
+  "app": "Pause for a Moment",
+  "appID": "6755661954",
+  "platforms": [
+    "iOS",
+    "iPadOS"
+  ],
+  "scheme": "Pause",
+  "configuration": "Release",
+  "version": "2.3",
+  "build": "5",
+  "baselinePublishedVersion": "2.2.1 (4)",
+  "baseCommit": "b3fb68fc3e190fae69e127efa11f46aa5cdcb105",
+  "branch": "main",
+  "remote": "github",
+  "archivedInputCount": 72,
+  "archivedInputs": "archived-app-inputs-sha256.json",
+  "archive": "/Users/donnoel/Library/Developer/Xcode/Archives/2026-11-18/Pause-2.3-5-final.xcarchive",
+  "validation": {
+    "simulatorTests": 31,
+    "simulatorExecutions": 34,
+    "simulatorFailures": 0,
+    "runtimeWarnings": 0,
+    "physicalIPhoneFlow": "Passed",
+    "physicalIPadFlow": "Passed",
+    "releaseInstalledAndLaunchedBoth": true,
+    "iCloudReflectionSync": "Observed both directions"
+  },
+  "whatsNew": "Your Calm, Okay, or Restless reflection is now saved with each completed session. Choose a day in Insights to review your sessions, durations, and reflections. Saved reflections sync with your session history through iCloud.",
+  "status": "Waiting for Review",
+  "buildID": "2ce9a81d-7008-4137-b06a-77fa9607733c",
+  "submissionID": "6f391d97-344d-4991-b9aa-71aa1315c253",
+  "submissionURL": "https://appstoreconnect.apple.com/apps/6755661954/distribution/reviewsubmissions/details/6f391d97-344d-4991-b9aa-71aa1315c253",
+  "submittedAt": "2026-11-18T11:18:00-08:00",
+  "verifiedAt": "2026-11-18T19:19:26.537389+00:00",
+  "submittedItems": 1,
+  "ageRating": "9+",
+  "ageRatingException": "Required updated questionnaire; wellness topics Yes, social capabilities No, medical/treatment None. Apple calculated 9+; Vietnam 12+; regional and older-OS exceptions apply.",
+  "sourceReference": "Git commit containing this receipt; archived app input hashes verified against committed bytes."
+}

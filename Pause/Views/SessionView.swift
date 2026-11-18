@@ -13,6 +13,7 @@ struct SessionView: View {
     @State private var customMinutesSelection: Int = 5
     @State private var isStatsSheetPresented: Bool = false
     @State private var hideCountdown = false
+    @State private var selectedInsightsDay = Date()
 
     init(viewModel: SessionViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -37,6 +38,9 @@ struct SessionView: View {
             statsSheet
                 .presentationDetents(insightsPresentationDetents)
                 .presentationDragIndicator(.visible)
+                .onAppear {
+                    selectedInsightsDay = viewModel.statsSummary.lastCompletedSession?.endDate ?? Date()
+                }
         }
         .environment(\.colorScheme, sessionColorScheme)
         .onChange(of: viewModel.state) { _, newState in
@@ -671,7 +675,7 @@ struct SessionView: View {
     }
 
     private var shouldScrollInsights: Bool {
-        !isRegularWidth || verticalSizeClass == .compact
+        true
     }
 
     private var insightsHeaderCard: some View {
@@ -722,18 +726,51 @@ struct SessionView: View {
                     .font(.headline.weight(.semibold))
                     .foregroundColor(MeditationColors.textPrimary)
 
-                MultiDatePicker(
-                    "Completed sessions",
-                    selection: .constant(viewModel.completedSessionDates)
-                )
-                .labelsHidden()
-                .allowsHitTesting(false)
-                .accessibilityLabel(Text("Calendar of completed sessions"))
+                DatePicker("Session day", selection: $selectedInsightsDay, displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                    .tint(MeditationColors.accentPrimary)
+                    .accessibilityHint("Choose a day to review completed sessions and reflections below.")
 
                 Text(calendarCaption)
                     .font(.footnote)
                     .foregroundColor(MeditationColors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+
+                Divider()
+                Text(selectedInsightsDay, format: .dateTime.month(.wide).day().year())
+                    .font(.headline)
+                    .foregroundColor(MeditationColors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+
+                let sessions = viewModel.sessions(on: selectedInsightsDay)
+                if sessions.isEmpty {
+                    Text("No completed sessions on this day.")
+                        .font(.body)
+                        .foregroundColor(MeditationColors.textSecondary)
+                } else {
+                    ForEach(sessions, id: \.endDate) { session in
+                        VStack(alignment: .leading, spacing: 6) {
+                            ViewThatFits(in: .horizontal) {
+                                HStack {
+                                    Text(session.endDate, style: .time)
+                                    Spacer()
+                                    Text(viewModel.formatDurationForSummary(session.plannedDuration))
+                                }
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(session.endDate, style: .time)
+                                    Text(viewModel.formatDurationForSummary(session.plannedDuration))
+                                }
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            Text(session.reflection.map { "Reflection: \($0.title)" } ?? "No reflection added")
+                                .font(.body)
+                        }
+                        .foregroundColor(MeditationColors.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 8)
+                        .accessibilityElement(children: .combine)
+                    }
+                }
             }
         }
     }
@@ -800,7 +837,7 @@ struct SessionView: View {
         if viewModel.completedSessionCount == 0 {
             return "Complete your first session to begin filling this calendar."
         }
-        return "Only fully completed sessions are recorded."
+        return "Choose a day to review its completed sessions and optional reflections."
     }
 
     private func formattedTime(_ interval: TimeInterval) -> String {

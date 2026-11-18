@@ -93,8 +93,8 @@ final class MockNotificationScheduler: SessionNotificationScheduling {
 final class SessionViewModelConfigurationTests: XCTestCase {
     override func setUp() {
         super.setUp()
-        PauseSessionStore.clear()
         PauseSessionStore.clearCompletedSessionsForTesting()
+        PauseSessionStore.clear()
     }
 
     override func tearDown() {
@@ -275,10 +275,38 @@ final class SessionViewModelConfigurationTests: XCTestCase {
 
         viewModel.selectReflection(.restless)
         XCTAssertEqual(viewModel.selectedReflection, .restless)
+        XCTAssertEqual(PauseSessionStore.loadCompletedSessions().first?.reflection, .restless)
+
+        viewModel.selectReflection(.calm)
+        XCTAssertEqual(PauseSessionStore.loadCompletedSessions().first?.reflection, .calm)
+        XCTAssertEqual(viewModel.sessions(on: now).first?.reflection, .calm)
 
         viewModel.startSelectedSession()
         XCTAssertEqual(viewModel.state, .running)
         XCTAssertNil(viewModel.selectedReflection)
+        XCTAssertEqual(PauseSessionStore.loadCompletedSessions().first?.reflection, .calm)
+
+        let relaunched = SessionViewModel(
+            timerEngine: MockTimerEngine(), chimePlayer: MockChimePlayer(),
+            backgroundAudio: MockBackgroundAudioController(), notificationScheduler: MockNotificationScheduler()
+        )
+        XCTAssertEqual(relaunched.sessions(on: now).first?.reflection, .calm)
+        XCTAssertEqual(relaunched.completedSessionCount, 1)
+    }
+
+    @MainActor
+    func testDaySelectionUsesCompletionDateInTheUsersTimeZone() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "America/Los_Angeles"))
+        let day = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-18T12:00:00-08:00"))
+        let end = try XCTUnwrap(calendar.date(bySettingHour: 0, minute: 1, second: 0, of: day))
+        PauseSessionStore.recordCompletedSession(startDate: end.addingTimeInterval(-300), endDate: end, plannedDuration: 300)
+        let viewModel = SessionViewModel(
+            timerEngine: MockTimerEngine(), chimePlayer: MockChimePlayer(),
+            backgroundAudio: MockBackgroundAudioController(), notificationScheduler: MockNotificationScheduler()
+        )
+        XCTAssertEqual(viewModel.sessions(on: day, calendar: calendar).count, 1)
+        XCTAssertTrue(viewModel.sessions(on: day.addingTimeInterval(-86400), calendar: calendar).isEmpty)
     }
 
     @MainActor
@@ -522,6 +550,40 @@ final class SessionStatsCalculatorTests: XCTestCase {
 }
 
 final class CompletedSessionRecordMergerTests: XCTestCase {
+    func testLegacyRecordsDecodeWithoutInventingAReflection() throws {
+        let legacy = Data("{\"startDate\":1000,\"endDate\":1300,\"plannedDuration\":300}".utf8)
+        let record = try JSONDecoder().decode(CompletedMeditationSessionRecord.self, from: legacy)
+        XCTAssertEqual(record.plannedDuration, 300)
+        XCTAssertNil(record.reflection)
+        XCTAssertNil(record.reflectionUpdatedAt)
+    }
+
+    func testReflectionRoundTripsAndSurvivesStaleCloudDuplicatesInEitherOrder() throws {
+        let start = Date(timeIntervalSince1970: 1_700_000_000)
+        let legacy = CompletedMeditationSessionRecord(startDate: start, endDate: start.addingTimeInterval(300), plannedDuration: 300)
+        var reflected = legacy
+        reflected.reflection = .calm
+        reflected.reflectionUpdatedAt = start.addingTimeInterval(301)
+        let decoded = try JSONDecoder().decode(CompletedMeditationSessionRecord.self, from: JSONEncoder().encode(reflected))
+        XCTAssertEqual(decoded, reflected)
+        for records in [[legacy, decoded], [decoded, legacy]] {
+            let merged = CompletedSessionRecordMerger.normalized(records, maxCount: 10)
+            XCTAssertEqual(merged, [reflected])
+        }
+    }
+
+    func testLatestReflectionWinsAcrossDevicesWithoutDuplicatingASession() {
+        let start = Date(timeIntervalSince1970: 1_700_000_000)
+        let older = CompletedMeditationSessionRecord(startDate: start, endDate: start.addingTimeInterval(300), plannedDuration: 300,
+                                                    reflection: .restless, reflectionUpdatedAt: start.addingTimeInterval(301))
+        var newer = older
+        newer.reflection = .okay
+        newer.reflectionUpdatedAt = start.addingTimeInterval(302)
+        for records in [[older, newer], [newer, older]] {
+            XCTAssertEqual(CompletedSessionRecordMerger.normalized(records, maxCount: 10), [newer])
+        }
+    }
+
     func testNormalizationRemovesApproximateDuplicatesAndSorts() {
         let base = Date(timeIntervalSince1970: 1_700_000_000)
         let first = CompletedMeditationSessionRecord(

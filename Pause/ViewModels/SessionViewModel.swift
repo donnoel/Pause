@@ -15,6 +15,7 @@ final class SessionViewModel: ObservableObject {
     @Published var isCustomDurationSheetPresented: Bool = false
     @Published private(set) var customDurationMinutes: Int = 5
     @Published private(set) var statsSummary: SessionStatsSummary = .empty
+    @Published private(set) var completedSessions: [CompletedMeditationSessionRecord] = []
     @Published private(set) var activeSessionBreathingStyle: BreathingStyle?
 
     private let timerEngine: MeditationTimerEngineProtocol
@@ -22,6 +23,7 @@ final class SessionViewModel: ObservableObject {
     private let backgroundAudio: BackgroundAudioControlling
     private let notificationScheduler: SessionNotificationScheduling
     private var sessionStartDate: Date?
+    private var completedSession: CompletedMeditationSessionRecord?
     private var lifecycleCancellables: Set<AnyCancellable> = []
 
     private static let timeFormatter: DateFormatter = {
@@ -85,6 +87,11 @@ final class SessionViewModel: ObservableObject {
             }
             .store(in: &lifecycleCancellables)
 
+        NotificationCenter.default.publisher(for: PauseSessionStore.completedSessionsDidChange)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.refreshStats() }
+            .store(in: &lifecycleCancellables)
+
         restoreActiveSessionIfNeeded(playCompletionChime: false)
         refreshStats()
     }
@@ -132,6 +139,10 @@ final class SessionViewModel: ObservableObject {
 
     var completedSessionCount: Int {
         statsSummary.completedSessionCount
+    }
+
+    func sessions(on day: Date, calendar: Calendar = .current) -> [CompletedMeditationSessionRecord] {
+        completedSessions.reversed().filter { calendar.isDate($0.endDate, inSameDayAs: day) }
     }
 
     var usualMeditationTimeDescription: String {
@@ -189,8 +200,10 @@ final class SessionViewModel: ObservableObject {
     }
 
     func selectReflection(_ reflection: SessionReflection) {
-        guard state == .completed else { return }
+        guard state == .completed, let completedSession,
+              PauseSessionStore.saveReflection(reflection, for: completedSession) else { return }
         selectedReflection = reflection
+        refreshStats()
     }
 
     func startPreset(_ preset: SessionDurationPreset) {
@@ -238,6 +251,7 @@ final class SessionViewModel: ObservableObject {
         remaining = 0
         total = 0
         selectedReflection = nil
+        completedSession = nil
         activeSessionBreathingStyle = nil
         sessionStartDate = nil
         notificationScheduler.cancelSessionSounds()
@@ -300,6 +314,7 @@ final class SessionViewModel: ObservableObject {
         remaining = duration
         state = .running
         selectedReflection = nil
+        completedSession = nil
         activeSessionBreathingStyle = selectedBreathingStyle
 
         let startTime = Date()
@@ -344,6 +359,7 @@ final class SessionViewModel: ObservableObject {
         state = .completed
         remaining = 0
         selectedReflection = nil
+        completedSession = nil
 
         let startedAt = info.startDate ?? completionDate
         let plannedDuration = info.plannedDuration ?? max(0, completionDate.timeIntervalSince(startedAt))
@@ -354,7 +370,7 @@ final class SessionViewModel: ObservableObject {
         }
 
         if plannedDuration > 0, completionDate > startedAt {
-            PauseSessionStore.recordCompletedSession(
+            completedSession = PauseSessionStore.recordCompletedSession(
                 startDate: startedAt,
                 endDate: completionDate,
                 plannedDuration: plannedDuration
@@ -373,6 +389,7 @@ final class SessionViewModel: ObservableObject {
         state = .completed
         remaining = 0
         selectedReflection = nil
+        completedSession = nil
 
         // End-of-session bell
         chimePlayer.play(chimeType: .end)
@@ -380,7 +397,7 @@ final class SessionViewModel: ObservableObject {
         let completionDate = Date()
         let startedAt = sessionStartDate ?? completionDate.addingTimeInterval(-total)
         if total > 0, completionDate > startedAt {
-            PauseSessionStore.recordCompletedSession(
+            completedSession = PauseSessionStore.recordCompletedSession(
                 startDate: startedAt,
                 endDate: completionDate,
                 plannedDuration: total
@@ -465,10 +482,11 @@ final class SessionViewModel: ObservableObject {
 
     private func refreshStats() {
         let records = PauseSessionStore.loadCompletedSessions()
+        completedSessions = records
         statsSummary = SessionStatsCalculator.makeSummary(from: records)
     }
 
-    private func formatDurationForSummary(_ duration: TimeInterval) -> String {
+    func formatDurationForSummary(_ duration: TimeInterval) -> String {
         let roundedSeconds = Int(duration.rounded())
         let minutes = roundedSeconds / 60
         let seconds = roundedSeconds % 60

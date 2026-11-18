@@ -137,7 +137,7 @@ enum RitualPreset: String, CaseIterable, Identifiable {
 }
 
 /// Optional one-tap reflection after a completed session.
-enum SessionReflection: String, CaseIterable, Identifiable {
+nonisolated enum SessionReflection: String, Codable, CaseIterable, Identifiable, Sendable {
     case calm
     case okay
     case restless
@@ -157,10 +157,12 @@ enum SessionReflection: String, CaseIterable, Identifiable {
 }
 
 /// Persisted record for a fully completed meditation session.
-struct CompletedMeditationSessionRecord: Codable, Equatable {
+nonisolated struct CompletedMeditationSessionRecord: Codable, Equatable, Sendable {
     let startDate: Date
     let endDate: Date
     let plannedDuration: TimeInterval
+    var reflection: SessionReflection? = nil
+    var reflectionUpdatedAt: Date? = nil
 }
 
 enum CompletedSessionRecordMerger {
@@ -175,10 +177,22 @@ enum CompletedSessionRecordMerger {
         unique.reserveCapacity(sorted.count)
 
         for record in sorted {
-            let duplicateExists = unique.contains { existing in
+            let duplicateIndex = unique.firstIndex { existing in
                 isApproximatelyDuplicate(existing, record)
             }
-            if !duplicateExists {
+            if let duplicateIndex {
+                // A stale device may still have the original session without its reflection.
+                // Merge the optional metadata instead of dropping it with the duplicate.
+                let existing = unique[duplicateIndex]
+                if let reflection = record.reflection,
+                   existing.reflection == nil ||
+                   (record.reflectionUpdatedAt ?? .distantPast) > (existing.reflectionUpdatedAt ?? .distantPast) ||
+                   ((record.reflectionUpdatedAt ?? .distantPast) == (existing.reflectionUpdatedAt ?? .distantPast) &&
+                    reflection.rawValue > (existing.reflection?.rawValue ?? "")) {
+                    unique[duplicateIndex].reflection = reflection
+                    unique[duplicateIndex].reflectionUpdatedAt = record.reflectionUpdatedAt
+                }
+            } else {
                 unique.append(record)
             }
         }
@@ -190,7 +204,7 @@ enum CompletedSessionRecordMerger {
         return unique
     }
 
-    private static func isApproximatelyDuplicate(
+    static func isApproximatelyDuplicate(
         _ lhs: CompletedMeditationSessionRecord,
         _ rhs: CompletedMeditationSessionRecord
     ) -> Bool {

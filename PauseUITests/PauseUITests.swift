@@ -34,6 +34,7 @@ final class PauseUITests: XCTestCase {
 
     @MainActor
     func testBreathingRefreshControls() async throws {
+        XCUIDevice.shared.orientation = .portrait
         let app = XCUIApplication()
         app.launch()
         let end = app.buttons["End current session"]
@@ -68,6 +69,39 @@ final class PauseUITests: XCTestCase {
         add(day)
         XCTAssertTrue(app.buttons["Pause meditation"].exists)
         end.tap()
+    }
+
+    @MainActor
+    func testReflectionPersistsAndCanBeReviewedAfterRelaunch() throws {
+        XCUIDevice.shared.orientation = .portrait
+        let app = XCUIApplication()
+        app.launch()
+        let end = app.buttons["End current session"]
+        if end.waitForExistence(timeout: 2) { end.tap() }
+        let newSession = app.buttons["Prepare a new session"]
+        if newSession.exists { newSession.tap() }
+        app.buttons["Custom…"].tap()
+        app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "1 minutes")
+        app.buttons["Use 1-minute duration"].tap()
+        let begin = app.buttons["Begin selected session"]
+        if !begin.isHittable { app.swipeUp() }
+        begin.tap()
+        let calm = app.buttons["Calm"]
+        XCTAssertTrue(calm.waitForExistence(timeout: 75))
+        if !calm.isHittable { app.swipeUp() }
+        calm.tap()
+        XCTAssertTrue(app.staticTexts["Noted: Calm."].exists)
+        app.terminate()
+        app.launch()
+        app.buttons["Insights"].tap()
+        let reflection = app.staticTexts["Reflection: Calm"]
+        for _ in 0..<5 where !reflection.isHittable { app.swipeUp() }
+        XCTAssertTrue(reflection.exists)
+        let saved = XCTAttachment(screenshot: app.screenshot())
+        saved.name = "Saved reflection in day-by-day Insights"
+        saved.lifetime = .keepAlways
+        add(saved)
+        app.buttons["Done"].tap()
     }
 
     @MainActor

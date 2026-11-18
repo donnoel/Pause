@@ -28,6 +28,7 @@ Project-specific guidance for contributors working in this repository.
 - Preserve configuration semantics: duration/ritual/breathing selections configure the next session and do not auto-start.
 - Keep active-session configuration distinct from editable idle/completed configuration state.
 - Live Activity is not currently shipped; do not reintroduce template ActivityKit scaffolding without full app-side lifecycle wiring.
+- Use two-component marketing versions (for example, `2.3` then `2.4`), continuing the existing sequence. Keep the build number separate and match the app/widget versions; do not introduce a third marketing-version component.
 
 ## Build and test commands
 Use these commands before handing off changes:

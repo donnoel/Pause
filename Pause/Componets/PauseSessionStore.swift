@@ -11,6 +11,7 @@ struct PauseSessionInfo: Codable {
 }
 
 enum PauseSessionStore {
+    static let completedSessionsDidChange = Notification.Name("PauseCompletedSessionsDidChange")
     // IMPORTANT: This must match the App Group ID used by the widget target
     private static let suiteName = "group.dn.pause"
     private static let key = "currentSession"
@@ -22,9 +23,15 @@ enum PauseSessionStore {
     private static let ubiquitousStore = NSUbiquitousKeyValueStore.default
     private static var iCloudSyncConfigured = false
     private static var iCloudObserver: NSObjectProtocol?
+    #if DEBUG
+    private static var testDefaults: UserDefaults?
+    #endif
 
     private static var defaults: UserDefaults? {
-        UserDefaults(suiteName: suiteName)
+        #if DEBUG
+        if let testDefaults { return testDefaults }
+        #endif
+        return UserDefaults(suiteName: suiteName)
     }
 
     static func save(_ info: PauseSessionInfo) {
@@ -55,6 +62,10 @@ enum PauseSessionStore {
 
     #if DEBUG
     static func clearCompletedSessionsForTesting() {
+        // Unit tests must not erase device history or upload synthetic sessions to iCloud.
+        if testDefaults == nil {
+            testDefaults = UserDefaults(suiteName: "dn.Pause.tests.\(UUID().uuidString)")
+        }
         guard let defaults else { return }
         defaults.removeObject(forKey: completedSessionsKey)
         reloadWidgetTimelines()
@@ -92,12 +103,13 @@ enum PauseSessionStore {
         )
     }
 
+    @discardableResult
     static func recordCompletedSession(
         startDate: Date,
         endDate: Date,
         plannedDuration: TimeInterval
-    ) {
-        guard plannedDuration > 0, endDate > startDate else { return }
+    ) -> CompletedMeditationSessionRecord? {
+        guard plannedDuration > 0, endDate > startDate else { return nil }
 
         let newRecord = CompletedMeditationSessionRecord(
             startDate: startDate,
@@ -110,10 +122,24 @@ enum PauseSessionStore {
             existingRecords + [newRecord],
             maxCount: maxCompletedSessionCount
         )
-        guard mergedRecords != existingRecords else { return }
+        if mergedRecords != existingRecords {
+            saveCompletedSessions(mergedRecords, syncToICloud: true)
+            reloadWidgetTimelines()
+        }
+        return mergedRecords.first { CompletedSessionRecordMerger.isApproximatelyDuplicate($0, newRecord) }
+    }
 
-        saveCompletedSessions(mergedRecords, syncToICloud: true)
-        reloadWidgetTimelines()
+    @discardableResult
+    static func saveReflection(_ reflection: SessionReflection, for session: CompletedMeditationSessionRecord) -> Bool {
+        var records = loadCompletedSessions()
+        guard let index = records.firstIndex(where: {
+            CompletedSessionRecordMerger.isApproximatelyDuplicate($0, session)
+        }) else { return false }
+
+        records[index].reflection = reflection
+        records[index].reflectionUpdatedAt = Date()
+        saveCompletedSessions(records, syncToICloud: true)
+        return true
     }
 
     private static func mergeCompletedSessionsFromICloud() {
@@ -132,6 +158,9 @@ enum PauseSessionStore {
     }
 
     private static func loadCompletedSessionsFromICloud() -> [CompletedMeditationSessionRecord] {
+        #if DEBUG
+        if testDefaults != nil { return [] }
+        #endif
         guard
             let cloudData = ubiquitousStore.data(forKey: cloudCompletedSessionsKey),
             let records = try? decoder.decode([CompletedMeditationSessionRecord].self, from: cloudData)
@@ -161,9 +190,13 @@ enum PauseSessionStore {
         if syncToICloud {
             saveCompletedSessionsToICloud(records)
         }
+        NotificationCenter.default.post(name: completedSessionsDidChange, object: nil)
     }
 
     private static func saveCompletedSessionsToICloud(_ records: [CompletedMeditationSessionRecord]) {
+        #if DEBUG
+        if testDefaults != nil { return }
+        #endif
         guard let data = try? encoder.encode(records) else { return }
         ubiquitousStore.set(data, forKey: cloudCompletedSessionsKey)
         ubiquitousStore.synchronize()
